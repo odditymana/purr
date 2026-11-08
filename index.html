@@ -10,6 +10,63 @@
   <body>
     <main>
       <h1>PURR</h1>
+
+      <svg id="cat" viewBox="0 0 400 240" role="img" aria-label="昼寝している猫">
+        <defs>
+          <!-- 胴体の形（背中とお腹で共有する） -->
+          <path id="cat-body-shape"
+                d="M130,200 C105,200 100,160 120,135 C140,110 200,98 260,100
+                   C310,102 345,125 348,160 C350,185 340,200 320,200 Z" />
+          <!-- 背中として見せる範囲（この曲線より上） -->
+          <clipPath id="cat-back-clip">
+            <path d="M0,0 H400 V158 C330,172 230,178 130,168 C110,166 90,162 0,160 Z" />
+          </clipPath>
+        </defs>
+
+        <!-- 床の影 -->
+        <ellipse class="cat-shadow" cx="205" cy="218" rx="175" ry="12" />
+
+        <!-- しっぽ：胴体の後ろから床へ伸びる -->
+        <g id="cat-tail">
+          <path class="cat-tail-outline" d="M325,185 C372,178 392,205 365,215 C340,224 290,222 255,212" />
+          <path class="cat-tail-fill" d="M325,185 C372,178 392,205 365,215 C340,224 290,222 255,212" />
+        </g>
+
+        <!-- 胴体：呼吸はこの親グループごと動かす -->
+        <g id="cat-body">
+          <g id="cat-belly">
+            <use href="#cat-body-shape" class="cat-belly-fill" />
+          </g>
+          <g id="cat-back">
+            <use href="#cat-body-shape" class="cat-fur" clip-path="url(#cat-back-clip)" />
+          </g>
+        </g>
+
+        <!-- 前足：そろえて前に投げ出す -->
+        <g id="cat-paws">
+          <rect class="cat-fur" x="52" y="185" width="62" height="17" rx="8.5" />
+          <rect class="cat-fur" x="34" y="181" width="62" height="17" rx="8.5" />
+        </g>
+
+        <!-- 頭：耳・閉じた目・鼻・口・ひげ -->
+        <g id="cat-head">
+          <path class="cat-fur" d="M58,116 L63,80 L90,104 Z" />
+          <path class="cat-fur" d="M100,103 L124,79 L132,113 Z" />
+          <path class="cat-inner-ear" d="M65,106 L67,90 L80,102 Z" />
+          <path class="cat-inner-ear" d="M110,102 L121,91 L124,108 Z" />
+
+          <ellipse class="cat-fur" cx="95" cy="145" rx="52" ry="44" />
+
+          <path class="cat-detail" d="M68,142 Q76,149 84,142" />
+          <path class="cat-detail" d="M104,142 Q112,149 120,142" />
+
+          <path class="cat-nose" d="M90,152 L98,152 L94,157 Z" />
+          <path class="cat-detail" d="M94,157 Q90,162 86,160 M94,157 Q98,162 102,160" />
+
+          <path class="cat-whisker" d="M72,158 L42,152 M72,163 L42,165" />
+          <path class="cat-whisker" d="M116,158 L146,152 M116,163 L146,165" />
+        </g>
+      </svg>
     </main>
   </body>
 </html>
