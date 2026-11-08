@@ -1,0 +1,25 @@
+/* ===== リセット ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ===== 基本 ===== */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fdf8f3;
+}
+
+main {
+  padding: 1rem;
+}
+
+/* ===== 動きを減らす設定 ===== */
+@media (prefers-reduced-motion: reduce) {
+  /* アニメーションを追加したら、ここで止める・弱める */
+}
