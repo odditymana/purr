@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PURR 実験：黒猫の頭部</title>
+    <style>
+      /* =====================================================
+         実験ページ：眠っている黒猫の頭部（横向き）
+         本番のスタイル（css/style.css）とは切り離している
+         ===================================================== */
+
+      :root {
+        --bg: #f6efe6;
+        --text: #4a3a30;
+
+        /* 毛：上ほど明るく、下ほど暗い */
+        --fur-top: #2e2e31;
+        --fur-mid: #161617;
+        --fur-bottom: #080808;
+        /* ツヤ：わずかに青みのある灰色 */
+        --fur-sheen: #969ba5;
+        /* 影 */
+        --fur-shade: #000;
+        /* 耳の内側 */
+        --ear-inner: #3a3638;
+
+        /* 鼻の皮膚 */
+        --nose: #141415;
+        --nose-highlight: #fff;
+
+        /* ひげと、背景の上で見せるための影 */
+        --whisker: #fbfaf7;
+        --whisker-shadow: #4a3a30;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background-color: var(--bg);
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      #cat-head-lab {
+        display: block;
+        width: min(560px, 100%);
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>実験：黒猫の頭部</h1>
+
+      <svg id="cat-head-lab" viewBox="0 0 480 360" role="img" aria-label="目を閉じて眠っている黒猫の横顔">
+        <defs>
+          <!-- ================= 形 ================= -->
+
+          <!-- 頭から首（左向き）。首の右端はマスクで背景に溶かす -->
+          <path id="head-shape"
+                d="M100,186
+                   C101,178 108,170 116,163
+                   C122,157 126,152 130,146
+                   C140,124 165,100 205,94
+                   C240,89 272,98 292,118
+                   C306,132 316,146 336,158
+                   C360,172 390,182 430,192
+                   L470,200 L470,350 L420,350
+                   C380,330 330,306 290,285
+                   C260,270 230,258 200,252
+                   C175,248 150,246 134,240
+                   C122,236 114,230 111,222
+                   C109,216 106,210 104,205
+                   C101,200 99,194 100,186 Z" />
+
+          <!-- 手前の耳：前の縁はまっすぐ、うしろの縁はふくらませる -->
+          <path id="ear-near-shape"
+                d="M172,112
+                   C182,84 200,58 218,40
+                   C222,36 226,37 228,42
+                   C240,66 254,86 266,108 Z" />
+          <!-- 手前の耳の内側：前の縁に沿って細くのぞく -->
+          <path id="ear-near-inner-shape"
+                d="M182,106
+                   C190,84 204,62 218,48
+                   C217,70 212,92 206,108 Z" />
+
+          <!-- 奥の耳：手前の耳のうしろから少しだけのぞく -->
+          <path id="ear-far-shape"
+                d="M220,104
+                   C232,80 248,60 264,48
+                   C268,45 271,47 271,52
+                   C276,76 282,96 286,116 Z" />
+
+          <clipPath id="head-clip"><use href="#head-shape" /></clipPath>
+          <clipPath id="ear-near-clip"><use href="#ear-near-shape" /></clipPath>
+          <clipPath id="ear-far-clip"><use href="#ear-far-shape" /></clipPath>
+
+          <!-- ================= 色 ================= -->
+
+          <!-- 地色：上から下へ暗く -->
+          <linearGradient id="fur-base" gradientUnits="userSpaceOnUse" x1="0" y1="40" x2="0" y2="280">
+            <stop offset="0" style="stop-color: var(--fur-top)" />
+            <stop offset="0.45" style="stop-color: var(--fur-mid)" />
+            <stop offset="1" style="stop-color: var(--fur-bottom)" />
+          </linearGradient>
+
+          <!-- ツヤと影：楕円にかけて使う。強さは楕円側の opacity で決める -->
+          <radialGradient id="sheen">
+            <stop offset="0" style="stop-color: var(--fur-sheen); stop-opacity: 1" />
+            <stop offset="1" style="stop-color: var(--fur-sheen); stop-opacity: 0" />
+          </radialGradient>
+          <radialGradient id="shade">
+            <stop offset="0" style="stop-color: var(--fur-shade); stop-opacity: 1" />
+            <stop offset="1" style="stop-color: var(--fur-shade); stop-opacity: 0" />
+          </radialGradient>
+
+          <!-- 耳の内側：先ほど暗く -->
+          <linearGradient id="ear-inner-fill" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" style="stop-color: var(--ear-inner)" />
+            <stop offset="1" style="stop-color: var(--fur-mid)" />
+          </linearGradient>
+
+          <!-- 鼻の皮膚 -->
+          <radialGradient id="nose-fill" cx="0.4" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#2a2a2c" />
+            <stop offset="1" style="stop-color: var(--nose)" />
+          </radialGradient>
+
+          <!-- ひげ：根元（右）は濃く、先（左）ほど透明に -->
+          <linearGradient id="whisker-fade-x" x1="1" y1="0" x2="0" y2="0">
+            <stop offset="0" style="stop-color: var(--whisker); stop-opacity: 0.95" />
+            <stop offset="1" style="stop-color: var(--whisker); stop-opacity: 0.15" />
+          </linearGradient>
+          <!-- 眉のひげ：根元（下）は濃く、先（上）ほど透明に -->
+          <linearGradient id="whisker-fade-y" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" style="stop-color: var(--whisker); stop-opacity: 0.85" />
+            <stop offset="1" style="stop-color: var(--whisker); stop-opacity: 0.1" />
+          </linearGradient>
+
+          <!-- 首を背景に溶かすマスク：頭の中心から離れるほど透明に
+               （真横のグラデーションだと、四角い帯がぼやけたように見えるため） -->
+          <radialGradient id="neck-fade-grad" gradientUnits="userSpaceOnUse" cx="200" cy="180" r="260">
+            <stop offset="0.55" stop-color="#fff" />
+            <stop offset="0.86" stop-color="#000" />
+          </radialGradient>
+          <mask id="neck-fade" maskUnits="userSpaceOnUse" x="-20" y="-20" width="520" height="400">
+            <rect x="-20" y="-20" width="520" height="400" fill="url(#neck-fade-grad)" />
+          </mask>
+
+          <!-- ================= フィルター ================= -->
+
+          <!-- 毛：lab/fur.html の方法3と同じ値。
+               SVG の中なので単位は viewBox の座標（絵といっしょに拡大縮小される） -->
+          <filter id="fur" filterUnits="userSpaceOnUse" x="-20" y="-20" width="520" height="400"
+                  color-interpolation-filters="sRGB">
+            <!-- パスの縁はくっきりしているので、少しぼかしてから毛先を作る（方法3のマスクの代わり） -->
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="soft" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.6 0.3" numOctaves="2" seed="3" result="edgeNoise" />
+            <feDisplacementMap in="soft" in2="edgeNoise" scale="8"
+                               xChannelSelector="R" yChannelSelector="G" result="shaped" />
+
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.8" numOctaves="3" seed="8" result="strandNoise" />
+            <feColorMatrix in="strandNoise" type="matrix" result="strands"
+                           values="0 0 0 0 0.75
+                                   0 0 0 0 0.76
+                                   0 0 0 0 0.8
+                                   1.4 0 0 0 -0.7" />
+            <feComposite in="strands" in2="shaped" operator="in" result="strandsIn" />
+            <feComponentTransfer in="strandsIn" result="strandsSoft">
+              <feFuncA type="linear" slope="0.2" />
+            </feComponentTransfer>
+
+            <feMerge>
+              <feMergeNode in="shaped" />
+              <feMergeNode in="strandsSoft" />
+            </feMerge>
+          </filter>
+
+          <!-- 顔のくぼみ・ツヤをなじませる軽いぼかし -->
+          <filter id="soften" x="-20%" y="-50%" width="140%" height="200%">
+            <feGaussianBlur stdDeviation="0.9" />
+          </filter>
+          <filter id="soften-more" x="-30%" y="-80%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="2" />
+          </filter>
+
+          <!-- ひげ：ベージュの背景の上でも見えるよう、ごく薄い影を付ける -->
+          <filter id="whisker-shadow" filterUnits="userSpaceOnUse" x="-20" y="-20" width="520" height="400">
+            <feDropShadow dx="0" dy="0.8" stdDeviation="0.7"
+                          style="flood-color: var(--whisker-shadow)" flood-opacity="0.45" />
+          </filter>
+        </defs>
+
+        <!-- ===== 毛のある部分（首の右端は背景に溶かす） ===== -->
+        <g mask="url(#neck-fade)">
+          <!-- 奥の耳 -->
+          <g id="ear-far" filter="url(#fur)">
+            <use href="#ear-far-shape" style="fill: var(--fur-bottom)" />
+            <g clip-path="url(#ear-far-clip)">
+              <ellipse cx="266" cy="78" rx="10" ry="24" fill="url(#sheen)" opacity="0.18"
+                       transform="rotate(25 266 78)" />
+            </g>
+          </g>
+
+          <!-- 手前の耳 -->
+          <g id="ear-near" filter="url(#fur)">
+            <use href="#ear-near-shape" fill="url(#fur-base)" />
+            <g clip-path="url(#ear-near-clip)">
+              <!-- 内側（前の縁に沿って） -->
+              <use href="#ear-near-inner-shape" fill="url(#ear-inner-fill)" opacity="0.9" />
+              <!-- うしろの縁のツヤ -->
+              <ellipse cx="245" cy="72" rx="10" ry="30" fill="url(#sheen)" opacity="0.35"
+                       transform="rotate(-28 245 72)" />
+              <!-- 付け根の影 -->
+              <ellipse cx="218" cy="112" rx="48" ry="12" fill="url(#shade)" opacity="0.6" />
+            </g>
+          </g>
+
+          <!-- 頭から首 -->
+          <g id="head" filter="url(#fur)">
+            <use href="#head-shape" fill="url(#fur-base)" />
+            <g clip-path="url(#head-clip)">
+              <!-- ツヤ：頭頂から額 -->
+              <ellipse cx="205" cy="108" rx="70" ry="20" fill="url(#sheen)" opacity="0.5"
+                       transform="rotate(-6 205 108)" />
+              <!-- ツヤ：鼻筋 -->
+              <ellipse cx="122" cy="160" rx="20" ry="7" fill="url(#sheen)" opacity="0.4"
+                       transform="rotate(-50 122 160)" />
+              <!-- ツヤ：ほおの上 -->
+              <ellipse cx="180" cy="200" rx="45" ry="24" fill="url(#sheen)" opacity="0.18" />
+              <!-- ツヤ：マズル（口先のふくらみ） -->
+              <ellipse cx="118" cy="205" rx="14" ry="10" fill="url(#sheen)" opacity="0.16" />
+              <!-- ツヤ：後頭部から首のうしろ -->
+              <ellipse cx="310" cy="140" rx="45" ry="12" fill="url(#sheen)" opacity="0.22"
+                       transform="rotate(35 310 140)" />
+
+              <!-- 影：目のくぼみ -->
+              <ellipse cx="155" cy="150" rx="26" ry="13" fill="url(#shade)" opacity="0.45"
+                       transform="rotate(-10 155 150)" />
+              <!-- 影：マズルとほおの境目 -->
+              <ellipse cx="138" cy="214" rx="14" ry="24" fill="url(#shade)" opacity="0.4"
+                       transform="rotate(-25 138 214)" />
+              <!-- 影：あごの下からのど -->
+              <ellipse cx="220" cy="265" rx="110" ry="32" fill="url(#shade)" opacity="0.75"
+                       transform="rotate(12 220 265)" />
+              <!-- 影：耳の付け根 -->
+              <ellipse cx="220" cy="104" rx="50" ry="10" fill="url(#shade)" opacity="0.35" />
+            </g>
+          </g>
+        </g>
+
+        <!-- ===== 顔のパーツ（毛のフィルターはかけない） ===== -->
+        <g id="face">
+          <!-- 閉じた目：線ではなく、暗いくぼみと、その上のまぶたのツヤで表す -->
+          <g id="eye">
+            <path d="M138,152 C146,158 160,158 170,146 C160,154 148,155 138,152 Z"
+                  fill="#030303" filter="url(#soften)" />
+            <path d="M141,148 C150,152 161,151 168,142 C160,148 150,149 141,148 Z"
+                  style="fill: var(--fur-sheen)" opacity="0.35" filter="url(#soften)" />
+            <path d="M143,158 C152,161 162,158 168,152 C162,158 152,160 143,158 Z"
+                  style="fill: var(--fur-sheen)" opacity="0.15" filter="url(#soften)" />
+          </g>
+
+          <!-- 鼻：毛より少しなめらかな皮膚と、小さなツヤ -->
+          <g id="nose">
+            <path d="M97,183 C97,178 102,176 107,178 C111,180 111,186 109,190
+                     C106,194 100,195 98,192 C96,189 96,186 97,183 Z"
+                  fill="url(#nose-fill)" />
+            <ellipse cx="102" cy="180" rx="3.2" ry="1.5" style="fill: var(--nose-highlight)" opacity="0.3"
+                     filter="url(#soften)" />
+            <path d="M98,188 C100,190 102,191 104,190" fill="none" stroke="#000" stroke-width="1.5"
+                  stroke-linecap="round" opacity="0.8" filter="url(#soften)" />
+          </g>
+
+          <!-- 口元：鼻の下から口角へ向かう、ごく細いくぼみ -->
+          <g id="mouth">
+            <path d="M103,195 C104,202 105,208 108,214 C114,222 120,226 130,229"
+                  fill="none" stroke="#000" stroke-width="2" stroke-linecap="round"
+                  opacity="0.75" filter="url(#soften)" />
+            <!-- 上くちびるのふくらみに当たるわずかな光 -->
+            <path d="M110,212 C116,219 122,222 130,224"
+                  fill="none" style="stroke: var(--fur-sheen)" stroke-width="2.5" stroke-linecap="round"
+                  opacity="0.18" filter="url(#soften-more)" />
+          </g>
+        </g>
+
+        <!-- ===== ひげ（白。ごく薄い影でベージュの上でも見せる） ===== -->
+        <g id="whiskers" filter="url(#whisker-shadow)" fill="none" stroke-linecap="round">
+          <g stroke="url(#whisker-fade-x)" stroke-width="1.3">
+            <!-- 根元はマズルのふくらみ全体に散らす（1点に集めると鼻から生えて見える） -->
+            <path d="M124,198 C98,192 70,188 40,186" />
+            <path d="M130,203 C102,200 66,200 28,208" />
+            <path d="M127,209 C100,210 64,216 30,232" />
+            <path d="M134,212 C106,218 74,232 44,256" />
+            <path d="M131,217 C110,226 88,242 68,270" />
+          </g>
+          <!-- 眉のひげ -->
+          <g stroke="url(#whisker-fade-y)" stroke-width="1.1">
+            <path d="M148,140 C138,122 128,108 112,94" />
+            <path d="M154,138 C148,118 142,102 132,86" />
+          </g>
+        </g>
+      </svg>
+    </main>
+  </body>
+</html>

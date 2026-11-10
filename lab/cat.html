@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PURR 実験：眠る黒猫</title>
+    <style>
+      /* =====================================================
+         実験ページ：横に伸びて眠る黒猫の全身（日本画の写生の雰囲気）
+         形は lab/cat-shape.svg から読み込む
+         ===================================================== */
+
+      :root {
+        /* 和紙 */
+        --paper: #f5f1e8;
+        --paper-fiber: #8a7a60;
+        --text: #5a4e40;
+
+        /* 墨色の毛：ほぼ平らに、ごくわずかに上を明るく */
+        --fur-top: #2a2927;
+        --fur-mid: #1b1a19;
+        --fur-bottom: #111110;
+        /* ツヤ：わずかに温かい灰色 */
+        --fur-sheen: #9c978f;
+        --fur-shade: #000;
+        /* ツヤと影の全体の強さ（SHADING の各楕円の強さに掛かる） */
+        --sheen-strength: 1;
+        --shade-strength: 1;
+        /* 足先の靴下（黒・灰色ではなし） */
+        --sock: #f0ece3;
+        --sock-strength: 0;
+        /* お腹：周りの毛とほぼ同じ黒（胴体の地色の同じ高さに合わせる） */
+        --belly-top: #232220;
+        --belly-bottom: #151514;
+        /* しっぽの上の縁：体の上に乗った筒に見せる細いツヤ */
+        --tail-rim: #8f8a82;
+
+        /* 顔 */
+        --eye: #050505;
+        /* まぶたの縁のツヤ：黒い顔の上で目の位置を知らせる */
+        --eye-rim: #8f8a82;
+        --nose: #0a0a0a;
+        --mouth: #000;
+
+        /* ひげと、背景の上で見せるための影 */
+        --whisker: #fbfaf6;
+        --whisker-shadow: #5a4e40;
+      }
+
+      /* ===== 毛の色の切り替え：<html data-coat> に合わせて変数だけを差し替える ===== */
+
+      /* 灰色：日本画の淡墨。陰影が読める明るさ */
+      :root[data-coat="gray"] {
+        --fur-top: #8d8982;
+        --fur-mid: #7b7770;
+        --fur-bottom: #6b6761;
+        --belly-top: #827e77;
+        --belly-bottom: #6f6b65;
+        --fur-sheen: #e4dfd6;
+        --fur-shade: #2b2926;
+        --sheen-strength: 0.7;
+        --shade-strength: 0.6;
+        --tail-rim: #d6d1c7;
+        --eye: #2b2926;
+        --eye-rim: #e4dfd6;
+        --nose: #3a3632;
+        --mouth: #2b2926;
+        --whisker-shadow: #3a3632;
+      }
+
+      /* 靴下：黒のまま、4本の足先だけ白 */
+      :root[data-coat="socks"] {
+        --sock-strength: 1;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background-color: var(--paper);
+      }
+
+      /* 和紙のムラと繊維（画面全体に固定） */
+      .paper {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+      }
+
+      /* 毛の色の切り替えボタン */
+      .coat-switch {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .coat-switch button {
+        min-width: 4.5rem;
+        padding: 0.375rem 1rem;
+        font: inherit;
+        font-size: 0.875rem;
+        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--text);
+        border-radius: 999px;
+        cursor: pointer;
+      }
+
+      .coat-switch button[aria-pressed="true"] {
+        color: var(--paper);
+        background: var(--text);
+      }
+
+      .coat-switch button:focus-visible {
+        outline: 2px solid var(--text);
+        outline-offset: 2px;
+      }
+
+      #cat {
+        display: block;
+        width: min(1000px, 100%);
+        height: auto;
+      }
+
+      /* 読み込みの結果（Illustrator で直したあとの確認用） */
+      .status {
+        width: min(1000px, 100%);
+        margin: 0;
+        font-size: 0.8125rem;
+      }
+
+      .status ul {
+        margin: 0.25rem 0 0;
+        padding-left: 1.25rem;
+      }
+
+      .status[data-state="error"] {
+        color: #a8322a;
+      }
+
+      /* ===== 猫の各部位 ===== */
+      .fur {
+        fill: url(#fur-base);
+        stroke: none;
+      }
+
+      .belly {
+        fill: url(#belly-base);
+      }
+
+      /* しっぽの上の縁のツヤ（目の縁と同じ作り） */
+      .tail-rim {
+        fill: var(--tail-rim);
+        stroke: none;
+        opacity: 0.45;
+      }
+
+      /* 目の下（奥）に同じ形を少しずらして置き、縁だけ細く明るくのぞかせる */
+      .eye-rim {
+        fill: var(--eye-rim);
+        stroke: var(--eye-rim);
+        stroke-width: 1;
+        opacity: 0.4;
+      }
+
+      .eye {
+        fill: var(--eye);
+        stroke: none;
+        opacity: 0.85;
+      }
+
+      /* 鼻・口元はごく控えめに */
+      .nose {
+        fill: var(--nose);
+        stroke: none;
+        opacity: 0.6;
+      }
+
+      .mouth {
+        fill: none;
+        stroke: var(--mouth);
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        opacity: 0.35;
+      }
+
+      .whiskers {
+        fill: none;
+        stroke: url(#whisker-fade);
+        stroke-width: 1.2;
+        stroke-linecap: round;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 和紙 -->
+    <svg class="paper" aria-hidden="true" focusable="false">
+      <filter id="paper-texture" x="0" y="0" width="100%" height="100%">
+        <!-- 大きなムラ -->
+        <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="2" result="mottleNoise" />
+        <feColorMatrix in="mottleNoise" type="matrix" result="mottle"
+                       values="0 0 0 0 0.54
+                               0 0 0 0 0.48
+                               0 0 0 0 0.38
+                               0.12 0 0 0 -0.03" />
+        <!-- 細かい繊維 -->
+        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.6" numOctaves="2" seed="5" result="fiberNoise" />
+        <feColorMatrix in="fiberNoise" type="matrix" result="fiber"
+                       values="0 0 0 0 0.54
+                               0 0 0 0 0.48
+                               0 0 0 0 0.38
+                               0.25 0 0 0 -0.1" />
+        <feMerge>
+          <feMergeNode in="mottle" />
+          <feMergeNode in="fiber" />
+        </feMerge>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#paper-texture)" />
+    </svg>
+
+    <main>
+      <h1>実験：眠る黒猫</h1>
+
+      <div class="coat-switch" role="group" aria-label="毛の色">
+        <button type="button" data-coat="black" aria-pressed="true">黒</button>
+        <button type="button" data-coat="gray" aria-pressed="false">灰色</button>
+        <button type="button" data-coat="socks" aria-pressed="false">靴下</button>
+      </div>
+
+      <svg id="cat" viewBox="0 0 800 400" role="img" aria-label="横向きに寝転がり、上半身をひねってお腹を見せて眠る黒猫">
+        <defs>
+          <!-- cat-shape.svg から読み込んだ形がここに入る（id は shape-○○） -->
+          <g id="shapes"></g>
+
+          <!-- 地色：各部位の上から下へ、ごくわずかに暗く -->
+          <linearGradient id="fur-base" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--fur-top)" />
+            <stop offset="0.5" style="stop-color: var(--fur-mid)" />
+            <stop offset="1" style="stop-color: var(--fur-bottom)" />
+          </linearGradient>
+          <!-- お腹：上ほどわずかに明るく -->
+          <linearGradient id="belly-base" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--belly-top)" />
+            <stop offset="1" style="stop-color: var(--belly-bottom)" />
+          </linearGradient>
+
+          <!-- ツヤと影：楕円にかけて使う。強さは楕円側の opacity で決める -->
+          <radialGradient id="sheen">
+            <stop offset="0" style="stop-color: var(--fur-sheen); stop-opacity: var(--sheen-strength)" />
+            <stop offset="1" style="stop-color: var(--fur-sheen); stop-opacity: 0" />
+          </radialGradient>
+          <radialGradient id="shade">
+            <stop offset="0" style="stop-color: var(--fur-shade); stop-opacity: var(--shade-strength)" />
+            <stop offset="1" style="stop-color: var(--fur-shade); stop-opacity: 0" />
+          </radialGradient>
+          <!-- 靴下：中心から広く平らに塗り、縁だけぼかす -->
+          <radialGradient id="sock">
+            <stop offset="0" style="stop-color: var(--sock); stop-opacity: var(--sock-strength)" />
+            <stop offset="0.75" style="stop-color: var(--sock); stop-opacity: var(--sock-strength)" />
+            <stop offset="1" style="stop-color: var(--sock); stop-opacity: 0" />
+          </radialGradient>
+
+          <!-- ひげ：根元（右）は濃く、先（左）ほど透明に。
+               座標は読み込み後に、ひげ全体の範囲に合わせて JS が設定する -->
+          <linearGradient id="whisker-fade" gradientUnits="userSpaceOnUse" x1="140" y1="0" x2="30" y2="0">
+            <stop offset="0" style="stop-color: var(--whisker); stop-opacity: 0.95" />
+            <stop offset="1" style="stop-color: var(--whisker); stop-opacity: 0.12" />
+          </linearGradient>
+
+          <!-- 毛：lab/head.html と同じ作り。
+               毛先がもっと背景に溶けるよう、ぼかしとずれを少し大きくし、うっすらにじみを足している -->
+          <filter id="fur" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440"
+                  color-interpolation-filters="sRGB">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="soft" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.6 0.3" numOctaves="2" seed="3" result="edgeNoise" />
+            <feDisplacementMap in="soft" in2="edgeNoise" scale="11"
+                               xChannelSelector="R" yChannelSelector="G" result="shaped" />
+
+            <!-- 毛先のまわりの、うっすらしたにじみ -->
+            <feGaussianBlur in="shaped" stdDeviation="3.5" result="halo" />
+            <feComponentTransfer in="halo" result="haloSoft">
+              <feFuncA type="linear" slope="0.35" />
+            </feComponentTransfer>
+
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.8" numOctaves="3" seed="8" result="strandNoise" />
+            <feColorMatrix in="strandNoise" type="matrix" result="strands"
+                           values="0 0 0 0 0.75
+                                   0 0 0 0 0.75
+                                   0 0 0 0 0.73
+                                   1.4 0 0 0 -0.7" />
+            <feComposite in="strands" in2="shaped" operator="in" result="strandsIn" />
+            <feComponentTransfer in="strandsIn" result="strandsSoft">
+              <feFuncA type="linear" slope="0.14" />
+            </feComponentTransfer>
+
+            <feMerge>
+              <feMergeNode in="haloSoft" />
+              <feMergeNode in="shaped" />
+              <feMergeNode in="strandsSoft" />
+            </feMerge>
+          </filter>
+
+          <!-- 顔のパーツをなじませる軽いぼかし -->
+          <filter id="soften" x="-30%" y="-80%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="0.9" />
+          </filter>
+
+          <!-- ひげ：明るい背景の上でも見えるよう、ごく薄い影を付ける -->
+          <filter id="whisker-shadow" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <feDropShadow dx="0" dy="0.8" stdDeviation="0.7"
+                          style="flood-color: var(--whisker-shadow)" flood-opacity="0.45" />
+          </filter>
+        </defs>
+
+        <!-- ===== 毛のある部分：まとめて1回だけ毛のフィルターをかける =====
+             各部位のツヤと影は、読み込み後に JS が data-part の中へ足す -->
+        <g id="cat-fur" filter="url(#fur)">
+          <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
+          <g data-part="body"><use href="#shape-body" class="fur" /></g>
+          <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
+          <!-- しっぽは体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く -->
+          <g data-part="tail">
+            <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
+            <use href="#shape-tail" class="fur" />
+          </g>
+          <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
+          <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
+          <g data-part="head"><use href="#shape-head" class="fur" /></g>
+          <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
+        </g>
+
+        <!-- ===== 顔のパーツ（毛のフィルターはかけない） ===== -->
+        <g id="cat-face" filter="url(#soften)">
+          <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
+          <use href="#shape-eye" class="eye" />
+          <use href="#shape-nose" class="nose" />
+          <use href="#shape-mouth" class="mouth" />
+        </g>
+
+        <!-- ===== ひげ ===== -->
+        <g filter="url(#whisker-shadow)">
+          <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+        </g>
+      </svg>
+
+      <div class="status" id="status" role="status">cat-shape.svg を読み込んでいます…</div>
+    </main>
+
+    <script type="module">
+      // =====================================================
+      // cat-shape.svg の形を読み込んで、このページの SVG に取り込む。
+      // - 要素を複製して <defs> に入れ、<use> で参照する
+      //   （path 以外の ellipse・circle・line なども、そのまま正しく描ける）
+      // - 色・線・class などの見た目の属性はすべて外す（見た目はこのページで決める）
+      // - Illustrator が付ける transform や <g> の入れ子も、そのまま保つ
+      // =====================================================
+
+      const SHAPE_URL = 'cat-shape.svg';
+      const SVG_NS = 'http://www.w3.org/2000/svg';
+
+      // 読み込む部位（cat-shape.svg の id）
+      const PARTS = [
+        'hindLeg', 'body', 'belly', 'tail', 'earFar', 'earNear', 'head', 'frontLegs',
+        'eye', 'nose', 'mouth', 'whiskers',
+      ];
+
+      // 形として扱える要素
+      const SHAPE_TAGS = new Set(['path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'g']);
+      // 中身がなくても問題のない要素（黙って取り除く）
+      const IGNORED_TAGS = new Set(['title', 'desc', 'metadata']);
+
+      // 外す見た目の属性
+      const PAINT_ATTRS = [
+        'id', 'class', 'style', 'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width',
+        'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray',
+        'opacity', 'filter', 'clip-path', 'mask', 'display', 'visibility',
+      ];
+
+      // ツヤ（sheen）と影（shade）。位置と大きさは、その部位の外接矩形に対する割合
+      //   cx, cy：中心 / rx, ry：半径 / rotate：回転（度） / opacity：強さ
+      // 光は上から。v2「ごろんと甘える」ポーズに合わせた位置
+      const SHADING = {
+        tail: [
+          // 筒の丸み：腰に沿って下りる部分と、床に沿って前へ回る部分の上の面
+          { type: 'sheen', cx: 0.86, cy: 0.42, rx: 0.05, ry: 0.3, rotate: 20, opacity: 0.14 },
+          { type: 'sheen', cx: 0.45, cy: 0.86, rx: 0.4, ry: 0.035, rotate: 0, opacity: 0.16 },
+          // 先の丸み
+          { type: 'sheen', cx: 0.04, cy: 0.88, rx: 0.04, ry: 0.06, rotate: 0, opacity: 0.14 },
+          // 床側の縁は暗く
+          { type: 'shade', cx: 0.45, cy: 1.0, rx: 0.45, ry: 0.06, rotate: 0, opacity: 0.4 },
+        ],
+        hindLeg: [
+          // のぞく足先の上の丸み
+          { type: 'sheen', cx: 0.6, cy: 0.25, rx: 0.3, ry: 0.15, rotate: 0, opacity: 0.12 },
+          // 床側は暗く
+          { type: 'shade', cx: 0.5, cy: 1.0, rx: 0.5, ry: 0.3, rotate: 0, opacity: 0.4 },
+        ],
+        body: [
+          // 肩の盛り上がり（頭のすぐうしろの山）
+          { type: 'sheen', cx: 0.38, cy: 0.1, rx: 0.15, ry: 0.1, rotate: -12, opacity: 0.16 },
+          // 腰の盛り上がり
+          { type: 'sheen', cx: 0.86, cy: 0.22, rx: 0.1, ry: 0.16, rotate: 30, opacity: 0.16 },
+          // 丸い腰の後ろ側は丸みに沿って暗く
+          { type: 'shade', cx: 1.0, cy: 0.6, rx: 0.06, ry: 0.4, rotate: -15, opacity: 0.3 },
+          // 肩と腰のあいだ（あばら）は少し暗く
+          { type: 'shade', cx: 0.68, cy: 0.35, rx: 0.07, ry: 0.3, rotate: 10, opacity: 0.2 },
+          // 床に接する側
+          { type: 'shade', cx: 0.5, cy: 1.0, rx: 0.5, ry: 0.15, rotate: 0, opacity: 0.4 },
+        ],
+        belly: [
+          // お腹らしさは、ごく薄いツヤだけ
+          { type: 'sheen', cx: 0.55, cy: 0.35, rx: 0.4, ry: 0.35, rotate: 5, opacity: 0.05 },
+        ],
+        earFar: [
+          { type: 'sheen', cx: 0.5, cy: 0.4, rx: 0.3, ry: 0.1, rotate: 35, opacity: 0.1 },
+        ],
+        earNear: [
+          { type: 'sheen', cx: 0.5, cy: 0.35, rx: 0.3, ry: 0.1, rotate: -20, opacity: 0.08 },
+        ],
+        head: [
+          // 頭頂から額（上を向いた面）
+          { type: 'sheen', cx: 0.4, cy: 0.12, rx: 0.3, ry: 0.1, rotate: 20, opacity: 0.16 },
+          // マズルと頬のふくらみ
+          { type: 'sheen', cx: 0.8, cy: 0.5, rx: 0.12, ry: 0.16, rotate: 0, opacity: 0.12 },
+          // 床についた頬は暗く
+          { type: 'shade', cx: 0.45, cy: 1.0, rx: 0.45, ry: 0.2, rotate: 0, opacity: 0.4 },
+        ],
+        frontLegs: [
+          // 奥の手首の上の丸み
+          { type: 'sheen', cx: 0.5, cy: 0.12, rx: 0.3, ry: 0.07, rotate: 25, opacity: 0.16 },
+          // 付け根（左の端）は胸の陰に沈める
+          { type: 'shade', cx: 0.0, cy: 0.5, rx: 0.12, ry: 0.5, rotate: 0, opacity: 0.5 },
+          // 手前の手首の上の丸み
+          { type: 'sheen', cx: 0.7, cy: 0.66, rx: 0.25, ry: 0.05, rotate: 8, opacity: 0.14 },
+          // 2本が重なる境目は暗く
+          { type: 'shade', cx: 0.5, cy: 0.6, rx: 0.3, ry: 0.06, rotate: 15, opacity: 0.35 },
+        ],
+      };
+
+      // 足先の靴下：SHADING と同じく外接矩形を基準にした楕円。部位の形で切り抜く。
+      // 塗りの濃さは CSS 変数 --sock-strength で決まる（靴下以外では 0 で見えない）
+      const SOCKS = {
+        hindLeg: [
+          { cx: 0.716, cy: 0.53, rx: 0.115, ry: 0.13 },  // 上の足先
+          { cx: 0.94, cy: 0.81, rx: 0.13, ry: 0.13 },    // 下の足先
+        ],
+        frontLegs: [
+          { cx: 0.57, cy: 0.645, rx: 0.16, ry: 0.18 },   // 奥の丸めた手
+          { cx: 0.865, cy: 0.83, rx: 0.22, ry: 0.19 },   // 手前の手
+        ],
+      };
+
+      const svg = document.getElementById('cat');
+      const shapesDefs = document.getElementById('shapes');
+      const statusEl = document.getElementById('status');
+
+      // 要素の祖先（ルートの <svg> を除く）にある transform を、外側から順に集める
+      function ancestorTransforms(el) {
+        const list = [];
+        for (let node = el.parentElement; node && node.localName !== 'svg'; node = node.parentElement) {
+          const t = node.getAttribute('transform');
+          if (t) list.unshift(t);
+        }
+        return list.join(' ');
+      }
+
+      // 見た目の属性を外し、形として使えない要素を取り除く。気づいた点は notes に足す
+      function sanitize(el, partName, notes) {
+        for (const child of [...el.children]) {
+          if (IGNORED_TAGS.has(child.localName)) {
+            child.remove();
+          } else if (!SHAPE_TAGS.has(child.localName)) {
+            notes.push(`${partName}：形として使えない要素 <${child.localName}> を無視しました`);
+            child.remove();
+          } else {
+            sanitize(child, partName, notes);
+          }
+        }
+        for (const attr of PAINT_ATTRS) el.removeAttribute(attr);
+      }
+
+      // 1つの部位を取り込む。成功したら、取り込みで気づいた点の一覧を返す
+      function importPart(shapeDoc, name, notes) {
+        const source = shapeDoc.querySelector(`[id="${name}"]`);
+        if (!source) return false;
+
+        if (!SHAPE_TAGS.has(source.localName)) {
+          notes.push(`${name}：<${source.localName}> は形として使えないため、読み込みませんでした`);
+          return false;
+        }
+        if (source.localName !== 'path') {
+          notes.push(`${name}：<${source.localName}> として書かれていたので、そのまま読み込みました`);
+        }
+
+        const wrapper = document.createElementNS(SVG_NS, 'g');
+        wrapper.id = `shape-${name}`;
+        const outer = ancestorTransforms(source);
+        if (outer) wrapper.setAttribute('transform', outer);
+        if (outer || source.hasAttribute('transform')) {
+          notes.push(`${name}：transform が付いていたので、そのまま適用しました`);
+        }
+
+        const clone = document.importNode(source, true);
+        sanitize(clone, name, notes);
+        wrapper.append(clone);
+        shapesDefs.append(wrapper);
+        return true;
+      }
+
+      // 部位の外接矩形を基準に、靴下・ツヤ・影の楕円を作り、その部位の形で切り抜く
+      function addShading(name) {
+        const group = svg.querySelector(`[data-part="${name}"]`);
+        const use = group?.querySelector('use.fur');
+        if (!use) return;
+
+        const box = use.getBBox();
+        if (box.width === 0 || box.height === 0) return;
+
+        // 部位の形で切り抜く。形は <g> の入れ物（shape-○○）なので、clipPath ではなく mask を使う
+        // （clipPath の中の <use> は <g> を参照できず、切り抜きが空になってしまう）
+        const mask = document.createElementNS(SVG_NS, 'mask');
+        mask.id = `mask-${name}`;
+        mask.setAttribute('maskUnits', 'userSpaceOnUse');
+        mask.setAttribute('x', box.x - 10);
+        mask.setAttribute('y', box.y - 10);
+        mask.setAttribute('width', box.width + 20);
+        mask.setAttribute('height', box.height + 20);
+        const maskUse = document.createElementNS(SVG_NS, 'use');
+        maskUse.setAttribute('href', `#shape-${name}`);
+        maskUse.setAttribute('fill', '#fff');
+        mask.append(maskUse);
+        shapesDefs.append(mask);
+
+        const layer = document.createElementNS(SVG_NS, 'g');
+        layer.setAttribute('mask', `url(#mask-${name})`);
+
+        // 靴下を先に（ツヤと影がその上に重なる）
+        const socks = (SOCKS[name] ?? []).map((s) => ({ ...s, type: 'sock', rotate: 0, opacity: 1 }));
+        for (const s of [...socks, ...(SHADING[name] ?? [])]) {
+          const cx = box.x + box.width * s.cx;
+          const cy = box.y + box.height * s.cy;
+          const ellipse = document.createElementNS(SVG_NS, 'ellipse');
+          ellipse.setAttribute('cx', cx);
+          ellipse.setAttribute('cy', cy);
+          ellipse.setAttribute('rx', box.width * s.rx);
+          ellipse.setAttribute('ry', box.height * s.ry);
+          ellipse.setAttribute('fill', `url(#${s.type})`);
+          ellipse.setAttribute('opacity', s.opacity);
+          if (s.rotate) ellipse.setAttribute('transform', `rotate(${s.rotate} ${cx} ${cy})`);
+          layer.append(ellipse);
+        }
+        group.append(layer);
+      }
+
+      // ひげの濃淡を、ひげ全体の左右の範囲に合わせる（左の根元が濃く、右の先が薄い）
+      function fitWhiskerFade() {
+        const use = document.getElementById('whiskers-use');
+        const box = use.getBBox();
+        if (box.width === 0) return;
+        const fade = document.getElementById('whisker-fade');
+        fade.setAttribute('x1', box.x);
+        fade.setAttribute('x2', box.x + box.width);
+      }
+
+      function showStatus(state, message, notes = []) {
+        statusEl.dataset.state = state;
+        statusEl.textContent = message;
+        if (notes.length > 0) {
+          const list = document.createElement('ul');
+          for (const note of notes) {
+            const item = document.createElement('li');
+            item.textContent = note;
+            list.append(item);
+          }
+          statusEl.append(list);
+        }
+      }
+
+      async function loadShapeDocument() {
+        const response = await fetch(SHAPE_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${SHAPE_URL} を読み込めませんでした（${response.status}）`);
+        const doc = new DOMParser().parseFromString(await response.text(), 'image/svg+xml');
+        if (doc.querySelector('parsererror')) throw new Error(`${SHAPE_URL} の書式が正しくありません`);
+        return doc;
+      }
+
+      async function init() {
+        let shapeDoc;
+        try {
+          shapeDoc = await loadShapeDocument();
+        } catch (error) {
+          showStatus('error', `${error.message}。ローカルサーバー経由で開いているか確認してください。`);
+          return;
+        }
+
+        const notes = [];
+
+        // 画面の範囲（viewBox）は cat-shape.svg に合わせる
+        const viewBox = shapeDoc.documentElement.getAttribute('viewBox');
+        if (viewBox && viewBox !== svg.getAttribute('viewBox')) {
+          svg.setAttribute('viewBox', viewBox);
+          notes.push(`viewBox が「${viewBox}」に変わっていたので、表示の範囲を合わせました`);
+        }
+
+        const missing = PARTS.filter((name) => !importPart(shapeDoc, name, notes));
+
+        // 想定していない id（Illustrator が名前を変えた可能性がある）
+        const unknown = [...shapeDoc.querySelectorAll('[id]')]
+          .map((el) => el.id)
+          .filter((id) => !PARTS.includes(id));
+        if (unknown.length > 0) {
+          notes.push(`使っていない id があります：${unknown.join('、')}（名前が変わっていないか確認してください）`);
+        }
+
+        for (const name of Object.keys(SHADING)) {
+          if (!missing.includes(name)) addShading(name);
+        }
+        if (!missing.includes('whiskers')) fitWhiskerFade();
+
+        if (missing.length > 0) {
+          showStatus('error', `見つからない部位があります：${missing.join('、')}`, notes);
+        } else {
+          showStatus('ok', `cat-shape.svg を読み込みました（${PARTS.length} 部位）`, notes);
+        }
+      }
+
+      // 毛の色の切り替え：<html data-coat> を変えるだけ（色は CSS 変数で決まる）
+      function setupCoatSwitch() {
+        const buttons = document.querySelectorAll('.coat-switch button');
+        for (const button of buttons) {
+          button.addEventListener('click', () => {
+            document.documentElement.dataset.coat = button.dataset.coat;
+            for (const other of buttons) {
+              other.setAttribute('aria-pressed', String(other === button));
+            }
+          });
+        }
+      }
+
+      setupCoatSwitch();
+      init();
+    </script>
+  </body>
+</html>

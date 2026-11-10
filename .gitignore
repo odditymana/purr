@@ -8,3 +8,6 @@ node_modules/
 # エディタ
 .vscode/
 .idea/
+
+# 参考写真（ライセンス品のため公開しない）
+lab/ref/
