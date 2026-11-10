@@ -116,48 +116,68 @@
             <feDropShadow dx="0" dy="0.8" stdDeviation="0.7"
                           style="flood-color: var(--whisker-shadow)" flood-opacity="0.45" />
           </filter>
+          <!-- 撫でた場所が沈む：撫でている点のまわりの絵を、少しだけ下へずらす。
+               ずらす量の地図は、中間の灰色（ずらさない）の上に、中心ほど緑が弱い放射グラデーションの画像を置いたもの。
+               緑が 0.5 より小さいほど、上の絵を持ってくる（= 絵が下へ沈む）。
+               地図の位置（feImage の x・y・width・height）と深さ（scale）は、撫でている間 JS が動かす。
+               撫でていないときは、このフィルターは外してある -->
+          <filter id="press" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440"
+                  color-interpolation-filters="sRGB">
+            <feFlood flood-color="rgb(128,128,128)" result="neutral" />
+            <feImage id="press-map" preserveAspectRatio="none" x="0" y="0" width="80" height="80" result="dent"
+                     href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='100'%20height='100'%3E%3CradialGradient%20id='g'%3E%3Cstop%20offset='0'%20stop-color='rgb(128,0,128)'/%3E%3Cstop%20offset='0.45'%20stop-color='rgb(128,50,128)'/%3E%3Cstop%20offset='0.75'%20stop-color='rgb(128,108,128)'/%3E%3Cstop%20offset='1'%20stop-color='rgb(128,128,128)'/%3E%3C/radialGradient%3E%3Crect%20width='100'%20height='100'%20fill='url(%23g)'/%3E%3C/svg%3E" />
+            <feMerge result="map">
+              <feMergeNode in="neutral" />
+              <feMergeNode in="dent" />
+            </feMerge>
+            <feDisplacementMap id="press-displacement" in="SourceGraphic" in2="map" scale="0"
+                               xChannelSelector="R" yChannelSelector="G" />
+          </filter>
         </defs>
 
-        <!-- ===== 体：呼吸で膨らむ =====
-             毛のフィルターは、呼吸で動かすこのグループそのものにかける。
-             （中の部位だけを動かすと、輪郭が画面に固定された毛のノイズの上をすべってチラつく）
-             並びは奥から手前。各部位のツヤと影は、読み込み後に JS が data-part の中へ足す -->
-        <g id="cat-body" class="breath-body" filter="url(#fur)">
-          <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
-          <g data-part="body"><use href="#shape-body" class="fur" /></g>
-          <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
-          <!-- しっぽは体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く -->
-          <g data-part="tail">
-            <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
-            <use href="#shape-tail" class="fur" />
-          </g>
-          <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
-        </g>
-
-        <!-- ===== 頭：体の呼吸に少しだけつられて動く。顔のパーツとひげも一緒に動かす ===== -->
-        <g id="cat-head" class="breath-head">
-          <!-- 上の耳：ときどきぴくっと動く。毛のフィルターは、回すこのグループそのものにかける
-               （頭のグループの中で耳だけを回すと、耳の縁の毛先がチラつく） -->
-          <g id="ear-twitch" class="ear-twitch" filter="url(#fur)">
-            <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
-          </g>
-          <g filter="url(#fur)">
-            <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
-            <g data-part="head"><use href="#shape-head" class="fur" /></g>
+        <!-- ===== 猫全体：撫でた場所が沈むフィルター（#press）は、撫でている間だけ JS がここに付ける ===== -->
+        <g id="cat-press">
+          <!-- ===== 体：呼吸で膨らむ =====
+               毛のフィルターは、呼吸で動かすこのグループそのものにかける。
+               （中の部位だけを動かすと、輪郭が画面に固定された毛のノイズの上をすべってチラつく）
+               並びは奥から手前。各部位のツヤと影は、読み込み後に JS が data-part の中へ足す -->
+          <g id="cat-body" class="breath-body" filter="url(#fur)">
+            <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
+            <g data-part="body"><use href="#shape-body" class="fur" /></g>
+            <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
+            <!-- しっぽは体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く -->
+            <g data-part="tail">
+              <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
+              <use href="#shape-tail" class="fur" />
+            </g>
+            <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
           </g>
 
-          <!-- 顔のパーツ（毛のフィルターはかけない） -->
-          <g id="cat-face" filter="url(#soften)">
-            <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
-            <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
-            <use href="#shape-eye" class="eye" />
-            <use id="nose-use" href="#shape-nose" class="nose" />
-            <use href="#shape-mouth" class="mouth" />
-          </g>
+          <!-- ===== 頭：体の呼吸に少しだけつられて動く。顔のパーツとひげも一緒に動かす ===== -->
+          <g id="cat-head" class="breath-head">
+            <!-- 上の耳：ときどきぴくっと動く。毛のフィルターは、回すこのグループそのものにかける
+                 （頭のグループの中で耳だけを回すと、耳の縁の毛先がチラつく） -->
+            <g id="ear-twitch" class="ear-twitch" filter="url(#fur)">
+              <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
+            </g>
+            <g filter="url(#fur)">
+              <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
+              <g data-part="head"><use href="#shape-head" class="fur" /></g>
+            </g>
 
-          <!-- ひげ -->
-          <g filter="url(#whisker-shadow)">
-            <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+            <!-- 顔のパーツ（毛のフィルターはかけない） -->
+            <g id="cat-face" filter="url(#soften)">
+              <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
+              <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
+              <use href="#shape-eye" class="eye" />
+              <use id="nose-use" href="#shape-nose" class="nose" />
+              <use href="#shape-mouth" class="mouth" />
+            </g>
+
+            <!-- ひげ -->
+            <g filter="url(#whisker-shadow)">
+              <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+            </g>
           </g>
         </g>
       </svg>

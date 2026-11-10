@@ -52,6 +52,8 @@ function shadePart(svg, defs, name) {
 
   const mask = createPartMask(name, box, defs);
   const layer = document.createElementNS(SVG_NS, 'g');
+  // 楕円は部位の形からはみ出しているので、撫でる操作の当たり判定からは外す（css/style.css）
+  layer.setAttribute('class', 'shading');
   layer.setAttribute('mask', `url(#${mask.id})`);
   for (const spec of SHADING[name]) layer.append(createEllipse(box, spec));
   group.append(layer);

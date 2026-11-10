@@ -193,6 +193,28 @@ h1 {
   }
 }
 
+/* ===== 撫でる操作 ===== */
+#cat {
+  /* 撫でているときに、文字の選択や長押しのメニューが出ないようにする */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 猫の形の上だけ、タッチでスクロールさせない（猫のまわりの余白はスクロールできる）。
+   SVG の中の要素で効かないブラウザ向けに、js/cat/stroke-input.js でも止めている */
+#cat-press use {
+  touch-action: none;
+}
+
+/* 当たり判定は毛の形と顔のパーツだけ。
+   ツヤ・影の楕円と、ずらして奥に置いた縁のコピーは、形からはみ出すので外す */
+.shading,
+.tail-rim,
+.eye-rim {
+  pointer-events: none;
+}
+
 /* ===== 耳のぴくっ ===== */
 /* 回す支点は、上の耳の付け根の中ほど（猫の SVG の viewBox の座標）。
    動き（間隔・角度・速さ）は js/logic/ear-twitch.js の EAR_TWITCH で決める */
