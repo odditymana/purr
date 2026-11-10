@@ -29,6 +29,18 @@
   --whisker-shadow: #5a4e40;
 }
 
+/* ===== 呼吸の値（あとで調整しやすいよう、ここにまとめる） ===== */
+:root {
+  /* 1回の呼吸の長さ */
+  --breath-duration: 4.5s;
+  /* いちばん吸ったときに、体が上へ膨らむ割合（床からの高さに対して） */
+  --breath-rise: 0.018;
+  /* 横へのごくわずかな広がり */
+  --breath-widen: 0.004;
+  /* 頭が体の動きの何割つられて動くか */
+  --breath-head: 0.35;
+}
+
 /* ===== リセット ===== */
 *,
 *::before,
@@ -129,4 +141,62 @@ h1 {
   stroke: url(#whisker-fade);
   stroke-width: 1.2;
   stroke-linecap: round;
+}
+
+/* ===== 呼吸 ===== */
+/* 体と頭を、床の線（y 342）を支点にわずかに膨らませる。床に接する下の縁は動かない。
+   支点の座標は猫の SVG の viewBox（800×400）のもの */
+.breath-body,
+.breath-head {
+  transform-box: view-box;
+  animation-duration: var(--breath-duration);
+  animation-iteration-count: infinite;
+}
+
+.breath-body {
+  animation-name: breathe-body;
+  /* 支点：お腹の下の床 */
+  transform-origin: 420px 342px;
+}
+
+.breath-head {
+  animation-name: breathe-head;
+  /* 支点：頬の下の床 */
+  transform-origin: 180px 342px;
+}
+
+/* 寝息の間合い：吸う（4割）→ 吐く（6割） */
+@keyframes breathe-body {
+  0%,
+  100% {
+    transform: scale(1, 1);
+    animation-timing-function: ease-in-out;
+  }
+  40% {
+    transform: scale(calc(1 + var(--breath-widen)), calc(1 + var(--breath-rise)));
+    animation-timing-function: ease-in-out;
+  }
+}
+
+@keyframes breathe-head {
+  0%,
+  100% {
+    transform: scale(1, 1);
+    animation-timing-function: ease-in-out;
+  }
+  40% {
+    transform: scale(
+      calc(1 + var(--breath-widen) * var(--breath-head)),
+      calc(1 + var(--breath-rise) * var(--breath-head))
+    );
+    animation-timing-function: ease-in-out;
+  }
+}
+
+/* ===== 動きを減らす設定 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .breath-body,
+  .breath-head {
+    animation: none;
+  }
 }

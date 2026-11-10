@@ -118,9 +118,11 @@
           </filter>
         </defs>
 
-        <!-- ===== 毛のある部分：まとめて1回だけ毛のフィルターをかける =====
+        <!-- ===== 体：呼吸で膨らむ =====
+             毛のフィルターは、呼吸で動かすこのグループそのものにかける。
+             （中の部位だけを動かすと、輪郭が画面に固定された毛のノイズの上をすべってチラつく）
              並びは奥から手前。各部位のツヤと影は、読み込み後に JS が data-part の中へ足す -->
-        <g id="cat-fur" filter="url(#fur)">
+        <g id="cat-body" class="breath-body" filter="url(#fur)">
           <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
           <g data-part="body"><use href="#shape-body" class="fur" /></g>
           <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
@@ -129,24 +131,30 @@
             <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
             <use href="#shape-tail" class="fur" />
           </g>
-          <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
-          <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
-          <g data-part="head"><use href="#shape-head" class="fur" /></g>
           <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
         </g>
 
-        <!-- ===== 顔のパーツ（毛のフィルターはかけない） ===== -->
-        <g id="cat-face" filter="url(#soften)">
-          <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
-          <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
-          <use href="#shape-eye" class="eye" />
-          <use id="nose-use" href="#shape-nose" class="nose" />
-          <use href="#shape-mouth" class="mouth" />
-        </g>
+        <!-- ===== 頭：体の呼吸に少しだけつられて動く。顔のパーツとひげも一緒に動かす ===== -->
+        <g id="cat-head" class="breath-head">
+          <g filter="url(#fur)">
+            <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
+            <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
+            <g data-part="head"><use href="#shape-head" class="fur" /></g>
+          </g>
 
-        <!-- ===== ひげ ===== -->
-        <g filter="url(#whisker-shadow)">
-          <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+          <!-- 顔のパーツ（毛のフィルターはかけない） -->
+          <g id="cat-face" filter="url(#soften)">
+            <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
+            <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
+            <use href="#shape-eye" class="eye" />
+            <use id="nose-use" href="#shape-nose" class="nose" />
+            <use href="#shape-mouth" class="mouth" />
+          </g>
+
+          <!-- ひげ -->
+          <g filter="url(#whisker-shadow)">
+            <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+          </g>
         </g>
       </svg>
     </main>
