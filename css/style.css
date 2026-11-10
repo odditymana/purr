@@ -1,13 +1,32 @@
 /* ===== 色 ===== */
 :root {
-  --bg: #f6efe6;
-  --text: #4a3a30;
+  /* 和紙 */
+  --paper: #f5f1e8;
+  --text: #5a4e40;
 
-  --cat-fur: #a39d94;
-  --cat-belly: #f3e6cf;
-  --cat-line: #4a3a30;
-  --cat-nose: #e8a6a6;
-  --cat-shadow: rgba(74, 58, 48, 0.12);
+  /* 墨色の毛：ほぼ平らに、ごくわずかに上を明るく */
+  --fur-top: #2a2927;
+  --fur-mid: #1b1a19;
+  --fur-bottom: #111110;
+  /* ツヤ：わずかに温かい灰色 */
+  --fur-sheen: #9c978f;
+  --fur-shade: #000;
+  /* お腹：周りの毛とほぼ同じ黒（胴体の地色の同じ高さに合わせる） */
+  --belly-top: #232220;
+  --belly-bottom: #151514;
+  /* しっぽの上の縁：体の上に乗った筒に見せる細いツヤ */
+  --tail-rim: #8f8a82;
+
+  /* 顔 */
+  --eye: #050505;
+  /* まぶたの縁のツヤ：黒い顔の上で目の位置を知らせる */
+  --eye-rim: #8f8a82;
+  --nose: #0a0a0a;
+  --mouth: #000;
+
+  /* ひげと、背景の上で見せるための影 */
+  --whisker: #fbfaf6;
+  --whisker-shadow: #5a4e40;
 }
 
 /* ===== リセット ===== */
@@ -23,7 +42,16 @@ body {
   font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
   line-height: 1.6;
   color: var(--text);
-  background-color: var(--bg);
+  background-color: var(--paper);
+}
+
+/* 和紙のムラと繊維（画面全体に固定し、内容の奥に置く） */
+.paper {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
 }
 
 main {
@@ -46,83 +74,59 @@ h1 {
 /* ===== 猫 ===== */
 #cat {
   display: block;
-  width: min(90vw, 640px);
+  width: min(1000px, 100%);
   height: auto;
-  max-height: 70vh;
-  max-height: 70svh;
+}
 
-  stroke: var(--cat-line);
-  stroke-width: 3;
-  stroke-linejoin: round;
+/* 毛のある部位 */
+.fur {
+  fill: url(#fur-base);
+  stroke: none;
+}
+
+.belly {
+  fill: url(#belly-base);
+}
+
+/* しっぽの上の縁のツヤ（目の縁と同じ作り） */
+.tail-rim {
+  fill: var(--tail-rim);
+  stroke: none;
+  opacity: 0.45;
+}
+
+/* 目の下（奥）に同じ形を少しずらして置き、縁だけ細く明るくのぞかせる */
+.eye-rim {
+  fill: var(--eye-rim);
+  stroke: var(--eye-rim);
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+.eye {
+  fill: var(--eye);
+  stroke: none;
+  opacity: 0.85;
+}
+
+/* 鼻・口元はごく控えめに */
+.nose {
+  fill: var(--nose);
+  stroke: none;
+  opacity: 0.6;
+}
+
+.mouth {
+  fill: none;
+  stroke: var(--mouth);
+  stroke-width: 1.6;
   stroke-linecap: round;
+  opacity: 0.35;
 }
 
-.cat-fur {
-  fill: var(--cat-fur);
-}
-
-.cat-belly-fill {
-  fill: var(--cat-belly);
-}
-
-.cat-inner-ear {
-  fill: var(--cat-nose);
-  stroke: none;
-}
-
-.cat-nose {
-  fill: var(--cat-nose);
-  stroke-width: 2;
-}
-
-.cat-detail {
+.whiskers {
   fill: none;
-  stroke-width: 2.5;
-}
-
-.cat-whisker {
-  fill: none;
-  stroke-width: 1.5;
-}
-
-.cat-shadow {
-  fill: var(--cat-shadow);
-  stroke: none;
-}
-
-/* しっぽは太い線を2本重ねて、縁取りのある形にする */
-.cat-tail-outline {
-  fill: none;
-  stroke-width: 22;
-}
-
-.cat-tail-fill {
-  fill: none;
-  stroke: var(--cat-fur);
-  stroke-width: 16;
-}
-
-/* ===== 呼吸 ===== */
-/* 胴体（背中＋お腹）を下端を支点に、ごくわずかに膨らませる */
-#cat-body {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: cat-breathe 5s ease-in-out infinite;
-}
-
-@keyframes cat-breathe {
-  0%,
-  100% {
-    transform: scale(1, 1);
-  }
-  50% {
-    transform: scale(1.008, 1.025);
-  }
-}
-
-/* ===== 動きを減らす設定 ===== */
-@media (prefers-reduced-motion: reduce) {
-  #cat-body {
-    animation: none;
-  }
+  stroke: url(#whisker-fade);
+  stroke-width: 1.2;
+  stroke-linecap: round;
 }

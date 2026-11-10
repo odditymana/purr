@@ -8,63 +8,142 @@
     <script type="module" src="js/main.js"></script>
   </head>
   <body>
+    <!-- 和紙のムラと繊維（画面全体に固定） -->
+    <svg class="paper" aria-hidden="true" focusable="false">
+      <filter id="paper-texture" x="0" y="0" width="100%" height="100%">
+        <!-- 大きなムラ -->
+        <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="2" result="mottleNoise" />
+        <feColorMatrix in="mottleNoise" type="matrix" result="mottle"
+                       values="0 0 0 0 0.54
+                               0 0 0 0 0.48
+                               0 0 0 0 0.38
+                               0.12 0 0 0 -0.03" />
+        <!-- 細かい繊維 -->
+        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.6" numOctaves="2" seed="5" result="fiberNoise" />
+        <feColorMatrix in="fiberNoise" type="matrix" result="fiber"
+                       values="0 0 0 0 0.54
+                               0 0 0 0 0.48
+                               0 0 0 0 0.38
+                               0.25 0 0 0 -0.1" />
+        <feMerge>
+          <feMergeNode in="mottle" />
+          <feMergeNode in="fiber" />
+        </feMerge>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#paper-texture)" />
+    </svg>
+
     <main>
       <h1>PURR</h1>
 
-      <svg id="cat" viewBox="0 0 400 240" role="img" aria-label="昼寝している猫">
+      <svg id="cat" viewBox="0 0 800 400" role="img" aria-label="横向きに丸くなって眠る黒猫">
         <defs>
-          <!-- 胴体の形（背中とお腹で共有する） -->
-          <path id="cat-body-shape"
-                d="M130,200 C105,200 100,160 120,135 C140,110 200,98 260,100
-                   C310,102 345,125 348,160 C350,185 340,200 320,200 Z" />
-          <!-- 背中として見せる範囲（この曲線より上） -->
-          <clipPath id="cat-back-clip">
-            <path d="M0,0 H400 V158 C330,172 230,178 130,168 C110,166 90,162 0,160 Z" />
-          </clipPath>
+          <!-- assets/cat-shape.svg から読み込んだ形がここに入る（id は shape-○○） -->
+          <g id="shapes"></g>
+
+          <!-- 地色：各部位の上から下へ、ごくわずかに暗く -->
+          <linearGradient id="fur-base" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--fur-top)" />
+            <stop offset="0.5" style="stop-color: var(--fur-mid)" />
+            <stop offset="1" style="stop-color: var(--fur-bottom)" />
+          </linearGradient>
+          <!-- お腹：上ほどわずかに明るく -->
+          <linearGradient id="belly-base" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--belly-top)" />
+            <stop offset="1" style="stop-color: var(--belly-bottom)" />
+          </linearGradient>
+
+          <!-- ツヤと影：楕円にかけて使う。強さは楕円側の opacity で決める -->
+          <radialGradient id="sheen">
+            <stop offset="0" style="stop-color: var(--fur-sheen)" />
+            <stop offset="1" style="stop-color: var(--fur-sheen); stop-opacity: 0" />
+          </radialGradient>
+          <radialGradient id="shade">
+            <stop offset="0" style="stop-color: var(--fur-shade)" />
+            <stop offset="1" style="stop-color: var(--fur-shade); stop-opacity: 0" />
+          </radialGradient>
+
+          <!-- ひげ：根元（左）は濃く、先（右）ほど透明に。
+               座標は読み込み後に、ひげ全体の範囲に合わせて JS が設定する -->
+          <linearGradient id="whisker-fade" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="800" y2="0">
+            <stop offset="0" style="stop-color: var(--whisker); stop-opacity: 0.95" />
+            <stop offset="1" style="stop-color: var(--whisker); stop-opacity: 0.12" />
+          </linearGradient>
+
+          <!-- 毛：輪郭を少しぼかしてノイズでずらし、毛先のにじみと細い毛の筋を重ねる -->
+          <filter id="fur" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440"
+                  color-interpolation-filters="sRGB">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="soft" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.6 0.3" numOctaves="2" seed="3" result="edgeNoise" />
+            <feDisplacementMap in="soft" in2="edgeNoise" scale="11"
+                               xChannelSelector="R" yChannelSelector="G" result="shaped" />
+
+            <!-- 毛先のまわりの、うっすらしたにじみ -->
+            <feGaussianBlur in="shaped" stdDeviation="3.5" result="halo" />
+            <feComponentTransfer in="halo" result="haloSoft">
+              <feFuncA type="linear" slope="0.35" />
+            </feComponentTransfer>
+
+            <!-- 細い毛の筋 -->
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.8" numOctaves="3" seed="8" result="strandNoise" />
+            <feColorMatrix in="strandNoise" type="matrix" result="strands"
+                           values="0 0 0 0 0.75
+                                   0 0 0 0 0.75
+                                   0 0 0 0 0.73
+                                   1.4 0 0 0 -0.7" />
+            <feComposite in="strands" in2="shaped" operator="in" result="strandsIn" />
+            <feComponentTransfer in="strandsIn" result="strandsSoft">
+              <feFuncA type="linear" slope="0.14" />
+            </feComponentTransfer>
+
+            <feMerge>
+              <feMergeNode in="haloSoft" />
+              <feMergeNode in="shaped" />
+              <feMergeNode in="strandsSoft" />
+            </feMerge>
+          </filter>
+
+          <!-- 顔のパーツをなじませる軽いぼかし -->
+          <filter id="soften" x="-30%" y="-80%" width="160%" height="260%">
+            <feGaussianBlur stdDeviation="0.9" />
+          </filter>
+
+          <!-- ひげ：明るい背景の上でも見えるよう、ごく薄い影を付ける -->
+          <filter id="whisker-shadow" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <feDropShadow dx="0" dy="0.8" stdDeviation="0.7"
+                          style="flood-color: var(--whisker-shadow)" flood-opacity="0.45" />
+          </filter>
         </defs>
 
-        <!-- 床の影 -->
-        <ellipse class="cat-shadow" cx="205" cy="218" rx="175" ry="12" />
-
-        <!-- しっぽ：胴体の後ろから床へ伸びる -->
-        <g id="cat-tail">
-          <path class="cat-tail-outline" d="M325,185 C372,178 392,205 365,215 C340,224 290,222 255,212" />
-          <path class="cat-tail-fill" d="M325,185 C372,178 392,205 365,215 C340,224 290,222 255,212" />
-        </g>
-
-        <!-- 胴体：呼吸はこの親グループごと動かす -->
-        <g id="cat-body">
-          <g id="cat-belly">
-            <use href="#cat-body-shape" class="cat-belly-fill" />
+        <!-- ===== 毛のある部分：まとめて1回だけ毛のフィルターをかける =====
+             並びは奥から手前。各部位のツヤと影は、読み込み後に JS が data-part の中へ足す -->
+        <g id="cat-fur" filter="url(#fur)">
+          <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
+          <g data-part="body"><use href="#shape-body" class="fur" /></g>
+          <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
+          <!-- しっぽは体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く -->
+          <g data-part="tail">
+            <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
+            <use href="#shape-tail" class="fur" />
           </g>
-          <g id="cat-back">
-            <use href="#cat-body-shape" class="cat-fur" clip-path="url(#cat-back-clip)" />
-          </g>
+          <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
+          <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
+          <g data-part="head"><use href="#shape-head" class="fur" /></g>
+          <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
         </g>
 
-        <!-- 前足：そろえて前に投げ出す -->
-        <g id="cat-paws">
-          <rect class="cat-fur" x="52" y="185" width="62" height="17" rx="8.5" />
-          <rect class="cat-fur" x="34" y="181" width="62" height="17" rx="8.5" />
+        <!-- ===== 顔のパーツ（毛のフィルターはかけない） ===== -->
+        <g id="cat-face" filter="url(#soften)">
+          <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
+          <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
+          <use href="#shape-eye" class="eye" />
+          <use href="#shape-nose" class="nose" />
+          <use href="#shape-mouth" class="mouth" />
         </g>
 
-        <!-- 頭：耳・閉じた目・鼻・口・ひげ -->
-        <g id="cat-head">
-          <path class="cat-fur" d="M58,116 L63,80 L90,104 Z" />
-          <path class="cat-fur" d="M100,103 L124,79 L132,113 Z" />
-          <path class="cat-inner-ear" d="M65,106 L67,90 L80,102 Z" />
-          <path class="cat-inner-ear" d="M110,102 L121,91 L124,108 Z" />
-
-          <ellipse class="cat-fur" cx="95" cy="145" rx="52" ry="44" />
-
-          <path class="cat-detail" d="M68,142 Q76,149 84,142" />
-          <path class="cat-detail" d="M104,142 Q112,149 120,142" />
-
-          <path class="cat-nose" d="M90,152 L98,152 L94,157 Z" />
-          <path class="cat-detail" d="M94,157 Q90,162 86,160 M94,157 Q98,162 102,160" />
-
-          <path class="cat-whisker" d="M72,158 L42,152 M72,163 L42,165" />
-          <path class="cat-whisker" d="M116,158 L146,152 M116,163 L146,165" />
+        <!-- ===== ひげ ===== -->
+        <g filter="url(#whisker-shadow)">
+          <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
         </g>
       </svg>
     </main>
