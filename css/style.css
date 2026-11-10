@@ -193,6 +193,14 @@ h1 {
   }
 }
 
+/* ===== 耳のぴくっ ===== */
+/* 回す支点は、上の耳の付け根の中ほど（猫の SVG の viewBox の座標）。
+   動き（間隔・角度・速さ）は js/logic/ear-twitch.js の EAR_TWITCH で決める */
+.ear-twitch {
+  transform-box: view-box;
+  transform-origin: 138px 186px;
+}
+
 /* ===== 動きを減らす設定 ===== */
 @media (prefers-reduced-motion: reduce) {
   .breath-body,

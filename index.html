@@ -136,8 +136,12 @@
 
         <!-- ===== 頭：体の呼吸に少しだけつられて動く。顔のパーツとひげも一緒に動かす ===== -->
         <g id="cat-head" class="breath-head">
-          <g filter="url(#fur)">
+          <!-- 上の耳：ときどきぴくっと動く。毛のフィルターは、回すこのグループそのものにかける
+               （頭のグループの中で耳だけを回すと、耳の縁の毛先がチラつく） -->
+          <g id="ear-twitch" class="ear-twitch" filter="url(#fur)">
             <g data-part="earFar"><use href="#shape-earFar" class="fur" /></g>
+          </g>
+          <g filter="url(#fur)">
             <g data-part="earNear"><use href="#shape-earNear" class="fur" /></g>
             <g data-part="head"><use href="#shape-head" class="fur" /></g>
           </g>

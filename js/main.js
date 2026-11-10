@@ -1,10 +1,11 @@
-// 画面の処理の入口。猫の形を読み込み、ツヤと影、ひげの濃淡を整える。
+// 画面の処理の入口。猫の形を読み込み、ツヤと影、ひげの濃淡を整え、耳の動きを始める。
 // 計算だけの処理は js/logic/ に分けてある。
 // 読み込みで問題があっても画面には出さず、console に知らせる
 
 import { loadShapes } from './cat/shape-loader.js';
 import { applyShading } from './cat/shading.js';
 import { fitWhiskerFade } from './cat/whiskers.js';
+import { startEarTwitch } from './cat/ear-twitch.js';
 
 // 形のファイル（ページからの相対位置）
 const SHAPE_URL = 'assets/cat-shape.svg';
@@ -36,6 +37,8 @@ async function init() {
       document.getElementById('whisker-fade'),
     );
   }
+
+  if (!missing.includes('earFar')) startEarTwitch(document.getElementById('ear-twitch'));
 }
 
 // type="module" のスクリプトは遅延実行されるため、DOM の準備を待たずに呼べる
