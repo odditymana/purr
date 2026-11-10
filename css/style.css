@@ -14,6 +14,8 @@
   /* お腹：周りの毛とほぼ同じ黒（胴体の地色の同じ高さに合わせる） */
   --belly-top: #232220;
   --belly-bottom: #151514;
+  /* 撫でた跡に走る、毛並みのツヤの筋 */
+  --sheen-trail: #d8d3ca;
   /* しっぽの上の縁：体の上に乗った筒に見せる細いツヤ */
   --tail-rim: #8f8a82;
 
@@ -211,8 +213,17 @@ h1 {
    ツヤ・影の楕円と、ずらして奥に置いた縁のコピーは、形からはみ出すので外す */
 .shading,
 .tail-rim,
-.eye-rim {
+.eye-rim,
+.sheen-trails {
   pointer-events: none;
+}
+
+/* 撫でた跡のツヤの筋：短く細い毛筋を、撫でた向きにそろえて並べる（js/cat/sheen-trail.js） */
+.sheen-trails line {
+  fill: none;
+  stroke: var(--sheen-trail);
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
 /* ===== 耳のぴくっ ===== */

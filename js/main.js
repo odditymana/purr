@@ -8,6 +8,7 @@ import { fitWhiskerFade } from './cat/whiskers.js';
 import { startEarTwitch } from './cat/ear-twitch.js';
 import { watchStrokes } from './cat/stroke-input.js';
 import { createPressDent } from './cat/press-dent.js';
+import { createSheenTrail } from './cat/sheen-trail.js';
 
 // 形のファイル（ページからの相対位置）
 const SHAPE_URL = 'assets/cat-shape.svg';
@@ -42,17 +43,30 @@ async function init() {
 
   if (!missing.includes('earFar')) startEarTwitch(document.getElementById('ear-twitch'));
 
-  // 撫でる：撫でている間、撫でた場所の近くが沈み、離すと戻る
+  // 撫でる：撫でている間、撫でた場所の近くが沈み、離すと戻る。撫でた跡にはツヤの筋が走り、ゆっくり消える
   const dent = createPressDent({
     target: document.getElementById('cat-press'),
     filterUrl: 'url(#press)',
     mapImage: document.getElementById('press-map'),
     displacement: document.getElementById('press-displacement'),
   });
+  const sheen = createSheenTrail({
+    head: document.getElementById('sheen-head'),
+    body: document.getElementById('sheen-body'),
+  });
   watchStrokes(svg, {
-    onStart: (stroke) => dent.press(stroke),
-    onMove: (stroke) => dent.move(stroke),
-    onEnd: () => dent.release(),
+    onStart: (stroke) => {
+      dent.press(stroke);
+      sheen.start(stroke);
+    },
+    onMove: (stroke) => {
+      dent.move(stroke);
+      sheen.move(stroke);
+    },
+    onEnd: () => {
+      dent.release();
+      sheen.end();
+    },
   });
 }
 
