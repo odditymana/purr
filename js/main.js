@@ -28,8 +28,13 @@ async function init() {
   }
 
   applyShading(svg, defs, missing);
-  if (!missing.includes('whiskers')) {
-    fitWhiskerFade(document.getElementById('whiskers-use'), document.getElementById('whisker-fade'));
+  // 濃淡の中心は鼻なので、鼻とひげの両方がそろっているときだけ合わせる
+  if (!missing.includes('whiskers') && !missing.includes('nose')) {
+    fitWhiskerFade(
+      document.getElementById('nose-use'),
+      document.getElementById('whiskers-use'),
+      document.getElementById('whisker-fade'),
+    );
   }
 }
 

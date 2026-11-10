@@ -63,12 +63,15 @@
             <stop offset="1" style="stop-color: var(--fur-shade); stop-opacity: 0" />
           </radialGradient>
 
-          <!-- ひげ：根元（左）は濃く、先（右）ほど透明に。
-               座標は読み込み後に、ひげ全体の範囲に合わせて JS が設定する -->
-          <linearGradient id="whisker-fade" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="800" y2="0">
-            <stop offset="0" style="stop-color: var(--whisker); stop-opacity: 0.95" />
-            <stop offset="1" style="stop-color: var(--whisker); stop-opacity: 0.12" />
-          </linearGradient>
+          <!-- ひげ：鼻の中心から外へ向かうほど透明に。
+               中心（鼻）と半径（ひげのいちばん遠い先まで）は、読み込み後に JS が設定する。
+               根元は半径の約 2.5〜3 割、短い下の束の先は約 5.5 割、長い上の束の先は 8〜9 割に来る。
+               下の束も先が薄く見え、上の束は先へ向かって消えていくよう、途中に段を置く -->
+          <radialGradient id="whisker-fade" gradientUnits="userSpaceOnUse" cx="400" cy="200" r="400">
+            <stop offset="0.25" style="stop-color: var(--whisker); stop-opacity: 0.95" />
+            <stop offset="0.55" style="stop-color: var(--whisker); stop-opacity: 0.35" />
+            <stop offset="0.9" style="stop-color: var(--whisker); stop-opacity: 0.1" />
+          </radialGradient>
 
           <!-- 毛：輪郭を少しぼかしてノイズでずらし、毛先のにじみと細い毛の筋を重ねる -->
           <filter id="fur" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440"
@@ -137,7 +140,7 @@
           <!-- 目の縁のツヤ：同じ形を右下へずらして奥に置く -->
           <use href="#shape-eye" class="eye-rim" transform="translate(1 1.5)" />
           <use href="#shape-eye" class="eye" />
-          <use href="#shape-nose" class="nose" />
+          <use id="nose-use" href="#shape-nose" class="nose" />
           <use href="#shape-mouth" class="mouth" />
         </g>
 
