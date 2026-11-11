@@ -234,6 +234,21 @@ h1 {
   transform-origin: 138px 186px;
 }
 
+/* ===== しっぽの先のぱたっ ===== */
+/* 持ち上がる一瞬だけ明るくなる、上の縁のツヤ。ふだんは見えない */
+.tail-flash {
+  fill: var(--sheen-trail);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 回す支点は、しっぽの根元と先の切れ目の、しっぽの中心線上（猫の SVG の viewBox の座標）。
+   動き（間隔・角度・速さ）は js/logic/tail-flick.js の TAIL_FLICK で決める */
+.tail-flick {
+  transform-box: view-box;
+  transform-origin: 560px 335px;
+}
+
 /* ===== 動きを減らす設定 ===== */
 @media (prefers-reduced-motion: reduce) {
   .breath-body,

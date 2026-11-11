@@ -133,6 +133,15 @@
             <use href="#shape-earNear" fill="#fff" />
           </mask>
 
+          <!-- しっぽを根元と先に分ける mask。切れ目は x 560（先を回す支点のところ）。
+               2つの切り口は少し重ねて、先が持ち上がっても継ぎ目にすき間が出ないようにする -->
+          <mask id="tail-base-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <rect x="558" y="-40" width="282" height="440" fill="#fff" />
+          </mask>
+          <mask id="tail-tip-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <rect x="-40" y="-40" width="602" height="440" fill="#fff" />
+          </mask>
+
           <!-- 撫でた場所が沈む：撫でている点のまわりの絵を、少しだけ下へずらす。
                ずらす量の地図は、中間の灰色（ずらさない）の上に、中心ほど緑が弱い放射グラデーションの画像を置いたもの。
                緑が 0.5 より小さいほど、上の絵を持ってくる（= 絵が下へ沈む）。
@@ -164,11 +173,27 @@
               <g data-part="hindLeg"><use href="#shape-hindLeg" class="fur" /></g>
               <g data-part="body"><use href="#shape-body" class="fur" /></g>
               <g data-part="belly"><use href="#shape-belly" class="fur belly" /></g>
-              <!-- しっぽは体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く -->
-              <g data-part="tail">
-                <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
-                <use href="#shape-tail" class="fur" />
+              <!-- しっぽ（根元）：体の手前。上の縁に細いツヤを出すため、同じ形を左上へずらして奥に置く。
+                   先の部分は mask で隠し、下の #tail-tip で描く -->
+              <g mask="url(#tail-base-mask)">
+                <g id="tail-art" data-part="tail">
+                  <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
+                  <use href="#shape-tail" class="fur" />
+                </g>
               </g>
+            </g>
+            <!-- しっぽ（先）：撫でているあいだ、ときどきぱたっと持ち上がる。
+                 根元と同じしっぽ（ツヤと影も含む）を写し、先の部分だけを残す。
+                 毛のフィルターは、回すこのグループそのものにかける（耳と同じく、チラつかないようにする） -->
+            <g id="tail-tip" class="tail-flick" data-part="tail" filter="url(#fur)">
+              <g mask="url(#tail-tip-mask)">
+                <!-- 持ち上がる一瞬だけ明るくなる、上の縁のツヤ（ふだんは見えない。JS が不透明度を動かす） -->
+                <use id="tail-flash" href="#shape-tail" class="tail-flash" transform="translate(-2 -2)" />
+                <use href="#tail-art" />
+              </g>
+            </g>
+            <!-- 前足：しっぽの先より手前。しっぽの先を間にはさむため、毛のフィルターは別にかける -->
+            <g filter="url(#fur)">
               <g data-part="frontLegs"><use href="#shape-frontLegs" class="fur" /></g>
             </g>
             <!-- 撫でた跡のツヤの筋（体）。毛のフィルターの外に置き、軽くぼかしてから猫の形で切り抜く -->

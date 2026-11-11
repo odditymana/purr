@@ -9,6 +9,7 @@ import { startEarTwitch } from './cat/ear-twitch.js';
 import { watchStrokes } from './cat/stroke-input.js';
 import { createPressDent } from './cat/press-dent.js';
 import { createSheenTrail } from './cat/sheen-trail.js';
+import { createTailFlick } from './cat/tail-flick.js';
 
 // 形のファイル（ページからの相対位置）
 const SHAPE_URL = 'assets/cat-shape.svg';
@@ -43,7 +44,8 @@ async function init() {
 
   if (!missing.includes('earFar')) startEarTwitch(document.getElementById('ear-twitch'));
 
-  // 撫でる：撫でている間、撫でた場所の近くが沈み、離すと戻る。撫でた跡にはツヤの筋が走り、ゆっくり消える
+  // 撫でる：撫でている間、撫でた場所の近くが沈み、離すと戻る。撫でた跡にはツヤの筋が走り、ゆっくり消える。
+  // 撫でているあいだは、しっぽの先がときどきぱたっと持ち上がる
   const dent = createPressDent({
     target: document.getElementById('cat-press'),
     filterUrl: 'url(#press)',
@@ -54,10 +56,12 @@ async function init() {
     head: document.getElementById('sheen-head'),
     body: document.getElementById('sheen-body'),
   });
+  const tail = createTailFlick(document.getElementById('tail-tip'), document.getElementById('tail-flash'));
   watchStrokes(svg, {
     onStart: (stroke) => {
       dent.press(stroke);
       sheen.start(stroke);
+      tail.start();
     },
     onMove: (stroke) => {
       dent.move(stroke);
@@ -66,6 +70,7 @@ async function init() {
     onEnd: () => {
       dent.release();
       sheen.end();
+      tail.stop();
     },
   });
 }

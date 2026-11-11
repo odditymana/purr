@@ -1,9 +1,10 @@
 // 上の耳（earFar）を、ときどきぴくっと動かす。
-// 待ち時間・回数・キーフレームの計算と値は js/logic/ear-twitch.js にある。
+// 値は js/logic/ear-twitch.js、待ち時間・回数・キーフレームの計算は js/logic/twitch.js にある。
 // - prefers-reduced-motion のときは動かさない（設定が途中で変わっても追従する）
 // - タブが見えていないあいだは予約を止める
 
-import { EAR_TWITCH, planTwitch, twitchKeyframes } from '../logic/ear-twitch.js';
+import { EAR_TWITCH } from '../logic/ear-twitch.js';
+import { planTwitch, twitchKeyframes } from '../logic/twitch.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
