@@ -12,6 +12,7 @@ import { createSheenTrail } from './cat/sheen-trail.js';
 import { createTailFlick } from './cat/tail-flick.js';
 import { createPurrSound } from './sound/purr-sound.js';
 import { setupSoundToggle, loadMuted } from './ui/sound-toggle.js';
+import { setupDebugPanel } from './ui/debug-panel.js';
 import { parseCssSeconds } from './logic/purr.js';
 
 // 形のファイル（ページからの相対位置）
@@ -72,6 +73,13 @@ async function init() {
     muted,
     onChange: (value) => purr.setMuted(value),
   });
+  // ページのどこかをタップ・クリックしたときにも音の準備をしておく。
+  // 撫でる前に一度どこかに触れていれば、最初のひと撫でから鳴る
+  for (const type of ['pointerup', 'touchend', 'click', 'keydown']) {
+    document.addEventListener(type, () => purr.prepare(), { passive: true });
+  }
+  // URL に ?debug=1 を付けたときだけ、音の状態を画面の隅に出す（実機での確認用）
+  setupDebugPanel({ audioState: () => purr.state() });
 
   watchStrokes(svg, {
     // 最初のひと撫で（押した操作）で、音の準備を始める

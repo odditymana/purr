@@ -51,6 +51,16 @@
 }
 
 /* ===== 基本 ===== */
+/* 1画面で完結するので、ページ全体はスクロールさせない。
+   はみ出しを隠し、引っぱったときの揺れ（iPhone のバウンド）も止める。
+   ピンチでの拡大は、アクセシビリティのため止めない */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
@@ -74,8 +84,10 @@ main {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  min-height: 100vh;
-  min-height: 100svh;
+  /* 画面の高さちょうど。100vh は iPhone ではアドレスバーを含んだ高さになり、はみ出すので、
+     対応しているブラウザでは 100dvh（今見えている高さ）を使う */
+  height: 100vh;
+  height: 100dvh;
   padding: 1rem;
 }
 
@@ -137,11 +149,28 @@ h1 {
   display: inline;
 }
 
+/* ===== 確認用の表示（?debug=1 のときだけ） ===== */
+.debug-panel {
+  position: fixed;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--paper);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
 /* ===== 猫 ===== */
 #cat {
   display: block;
   width: min(1000px, 100%);
   height: auto;
+  /* 横向きのスマホなど、高さが足りない画面でもはみ出さない（見出し・すき間・余白のぶんを引く）。
+     縦横の比は viewBox のまま保たれ、左右に余白ができる */
+  max-height: calc(100vh - 5rem);
+  max-height: calc(100dvh - 5rem);
 }
 
 /* 毛のある部位 */

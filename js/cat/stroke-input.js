@@ -22,9 +22,8 @@ function partAt(svg, clientX, clientY) {
 }
 
 // onStart / onMove / onEnd に { part, x, y, speed } を渡して知らせる（onEnd は引数なし）。
-// onPress は、猫の上で押したとき（撫でる前）と、離したときに呼ぶ。
-// 押す・離す操作の中なので、音の準備に使える（iPhone の Safari は、離す操作でないと音の準備を
-// 許さないことがあるため、離したときにも呼ぶ）
+// onPress は、猫の上で押したとき（撫でる前）と、離したときに呼ぶ。音の準備に使う。
+// ブラウザが音の準備を許すのは、マウスなら押したとき、タッチなら指を離したとき（pointerup / touchend）
 export function watchStrokes(svg, { onPress = () => {}, onStart, onMove, onEnd }, config = STROKE) {
   let active = null; // 押している最中のポインタの記録
 
@@ -100,4 +99,7 @@ export function watchStrokes(svg, { onPress = () => {}, onStart, onMove, onEnd }
     const touch = event.touches[0];
     if (touch && partAt(svg, touch.clientX, touch.clientY)) event.preventDefault();
   }, { passive: false });
+
+  // タッチで指を離したときも、音の準備を呼ぶ（pointerup が届かない場合に備える）
+  svg.addEventListener('touchend', () => onPress());
 }
