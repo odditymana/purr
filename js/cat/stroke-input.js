@@ -13,8 +13,9 @@ function toSvgPoint(svg, clientX, clientY) {
   return new DOMPoint(clientX, clientY).matrixTransform(svg.getScreenCTM().inverse());
 }
 
-// 画面の座標の真下にある、猫の撫でる部位。猫の外なら null
-function partAt(svg, clientX, clientY) {
+// 画面の座標の真下にある、猫の撫でる部位。猫の外なら null。
+// キーボードで撫でるとき（js/cat/keyboard-stroke.js）も、同じ当たり判定を使う
+export function partAt(svg, clientX, clientY) {
   const el = document.elementFromPoint(clientX, clientY);
   if (!el || !svg.contains(el)) return null;
   const name = el.closest('[data-part]')?.dataset.part ?? shapeNameFromHref(el.getAttribute('href'));

@@ -8,6 +8,7 @@ import { fitWhiskerFade } from './cat/whiskers.js';
 import { startEarTwitch } from './cat/ear-twitch.js';
 import { createFurBitmaps } from './cat/fur-bitmap.js';
 import { watchStrokes } from './cat/stroke-input.js';
+import { watchKeyboardStrokes } from './cat/keyboard-stroke.js';
 import { createPressDent } from './cat/press-dent.js';
 import { createSheenTrail } from './cat/sheen-trail.js';
 import { createTailFlick } from './cat/tail-flick.js';
@@ -89,7 +90,8 @@ async function init() {
   // URL に ?debug=1 を付けたときだけ、音の状態を画面の隅に出す（実機での確認用）
   setupDebugPanel({ audioState: () => purr.state(), furState: () => fur.state() });
 
-  watchStrokes(svg, {
+  // 撫でたときの反応は、マウス・タッチとキーボードで共通
+  const reactions = {
     // 最初のひと撫で（押した操作）で、音の準備を始める
     onPress: () => purr.prepare(),
     onStart: (stroke) => {
@@ -109,7 +111,10 @@ async function init() {
       tail.stop();
       purr.stop();
     },
-  });
+  };
+  watchStrokes(svg, reactions);
+  // キーボード：猫にフォーカスして、矢印キーで撫でる
+  watchKeyboardStrokes(svg, document.getElementById('keyboard-marker'), reactions);
 }
 
 // type="module" のスクリプトは遅延実行されるため、DOM の準備を待たずに呼べる

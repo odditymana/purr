@@ -29,6 +29,9 @@
   /* ひげと、背景の上で見せるための影 */
   --whisker: #fbfaf6;
   --whisker-shadow: #5a4e40;
+
+  /* キーボードでフォーカスしたときの枠（文字の色を薄くしたもの） */
+  --focus-ring: rgba(90, 78, 64, 0.45);
 }
 
 /* ===== 呼吸の値（あとで調整しやすいよう、ここにまとめる） ===== */
@@ -297,6 +300,33 @@ h1 {
   #cat[data-stroke-part] {
     cursor: grab;
   }
+}
+
+/* キーボードでフォーカスしたときだけ、猫のまわりに控えめな枠を出す */
+#cat:focus {
+  outline: none;
+}
+
+#cat:focus-visible {
+  outline: 1px dashed var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* キーボードで撫でている位置の印：黒い毛の上で見える、薄く小さな輪。
+   キーボードで操作しているとき（フォーカスが見えているとき・矢印キーを押したあと）だけ出す */
+.keyboard-marker {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+#cat:focus-visible .keyboard-marker,
+#cat[data-keyboard]:focus .keyboard-marker {
+  opacity: 0.5;
 }
 
 /* 当たり判定は毛の形と顔のパーツだけ。

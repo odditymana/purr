@@ -45,7 +45,10 @@
     <main>
       <h1>PURR</h1>
 
-      <svg id="cat" viewBox="0 0 800 400" role="img" aria-label="横向きに丸くなって眠る黒猫">
+      <!-- フォーカスして矢印キーで撫でられる（js/cat/keyboard-stroke.js）。
+           role="application" にして、読み上げソフトを使っていても矢印キーが猫に届くようにする -->
+      <svg id="cat" viewBox="0 0 800 400" tabindex="0" role="application" aria-roledescription="撫でられる猫"
+           aria-label="横向きに丸くなって眠る黒猫。矢印キーで撫でられます。左右で撫で、上下で撫でる場所を変えます。">
         <defs>
           <!-- assets/cat-shape.svg から読み込んだ形がここに入る（id は shape-○○） -->
           <g id="shapes"></g>
@@ -238,6 +241,9 @@
             </g>
           </g>
         </g>
+
+        <!-- キーボードで撫でている位置の印。キーボードで操作しているときだけ見せる（位置は JS が動かす） -->
+        <circle id="keyboard-marker" class="keyboard-marker" r="7" cx="0" cy="0" />
       </svg>
     </main>
   </body>
