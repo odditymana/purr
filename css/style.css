@@ -290,6 +290,15 @@ h1 {
   touch-action: none;
 }
 
+/* マウスなど細かく指せる環境では、撫でられる部位の上だけ、カーソルを開いた手にする。
+   撫でている最中も開いた手のまま（握りこぶしにはしない）。まわりの余白は今のまま */
+@media (pointer: fine) {
+  #cat-press use,
+  #cat[data-stroke-part] {
+    cursor: grab;
+  }
+}
+
 /* 当たり判定は毛の形と顔のパーツだけ。
    ツヤ・影の楕円と、ずらして奥に置いた縁のコピーは、形からはみ出すので外す */
 .shading,
@@ -305,6 +314,21 @@ h1 {
   stroke: var(--sheen-trail);
   stroke-width: 1.6;
   stroke-linecap: round;
+}
+
+/* ===== 毛を画像にしたあと（js/cat/fur-bitmap.js） ===== */
+/* 元の形は見えなくして残し、撫でる当たり判定に使う。画像は当たり判定から外す */
+.fur-rasterized > :not(.fur-bitmap) {
+  opacity: 0;
+}
+
+.fur-bitmap {
+  pointer-events: none;
+}
+
+/* しっぽの先の、持ち上がる一瞬に明るくなるツヤの画像。ふだんは見えない */
+.tail-flash-bitmap {
+  opacity: 0;
 }
 
 /* ===== 耳のぴくっ ===== */

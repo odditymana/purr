@@ -11,6 +11,7 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // tip：回す、しっぽの先のグループ / flash：先の上の縁を明るくするツヤ（なくてもよい）。
+// flash は要素か、動かすときに要素を返す関数（毛を画像にしたあとは、ツヤも画像に入れ替わるため）。
 // start() / stop() を撫で始めと撫で終わりで呼ぶ
 export function createTailFlick(tip, flash, { random = Math.random, config = TAIL_FLICK } = {}) {
   const { keyframes, durationMs } = twitchKeyframes(config);
@@ -27,7 +28,7 @@ export function createTailFlick(tip, flash, { random = Math.random, config = TAI
       if (i > 0) await wait(config.doubleGapMs);
       if (!stroking || reducedMotion.matches) break;
       tip.animate(keyframes, { duration: durationMs });
-      flash?.animate(flashFrames, { duration: durationMs });
+      (typeof flash === 'function' ? flash() : flash)?.animate(flashFrames, { duration: durationMs });
       await wait(durationMs);
     }
     flicking = false;

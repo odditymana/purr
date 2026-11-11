@@ -6,6 +6,7 @@ import { loadShapes } from './cat/shape-loader.js';
 import { applyShading } from './cat/shading.js';
 import { fitWhiskerFade } from './cat/whiskers.js';
 import { startEarTwitch } from './cat/ear-twitch.js';
+import { createFurBitmaps } from './cat/fur-bitmap.js';
 import { watchStrokes } from './cat/stroke-input.js';
 import { createPressDent } from './cat/press-dent.js';
 import { createSheenTrail } from './cat/sheen-trail.js';
@@ -48,6 +49,10 @@ async function init() {
 
   if (!missing.includes('earFar')) startEarTwitch(document.getElementById('ear-twitch'));
 
+  // 毛の質感を一度だけ画像にして、動かすときに毛のフィルターを計算し直さないようにする。
+  // 画像ができるまでは、今までどおりフィルターで描いている
+  const fur = createFurBitmaps(svg);
+
   // 撫でる：撫でている間、撫でた場所の近くが沈み、離すと戻る。撫でた跡にはツヤの筋が走り、ゆっくり消える。
   // 撫でているあいだは、しっぽの先がときどきぱたっと持ち上がる
   const dent = createPressDent({
@@ -60,7 +65,10 @@ async function init() {
     head: document.getElementById('sheen-head'),
     body: document.getElementById('sheen-body'),
   });
-  const tail = createTailFlick(document.getElementById('tail-tip'), document.getElementById('tail-flash'));
+  const tail = createTailFlick(
+    document.getElementById('tail-tip'),
+    () => fur.flash() ?? document.getElementById('tail-flash'),
+  );
 
   // ゴロゴロ：息の調子は呼吸のアニメーションと同じ周期にする。消音の状態は覚えておいたものを使う
   const breathSeconds = parseCssSeconds(
@@ -79,7 +87,7 @@ async function init() {
     document.addEventListener(type, () => purr.prepare(), { passive: true });
   }
   // URL に ?debug=1 を付けたときだけ、音の状態を画面の隅に出す（実機での確認用）
-  setupDebugPanel({ audioState: () => purr.state() });
+  setupDebugPanel({ audioState: () => purr.state(), furState: () => fur.state() });
 
   watchStrokes(svg, {
     // 最初のひと撫で（押した操作）で、音の準備を始める
