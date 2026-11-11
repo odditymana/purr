@@ -10,6 +10,9 @@ import { watchStrokes } from './cat/stroke-input.js';
 import { createPressDent } from './cat/press-dent.js';
 import { createSheenTrail } from './cat/sheen-trail.js';
 import { createTailFlick } from './cat/tail-flick.js';
+import { createPurrSound } from './sound/purr-sound.js';
+import { setupSoundToggle, loadMuted } from './ui/sound-toggle.js';
+import { parseCssSeconds } from './logic/purr.js';
 
 // 形のファイル（ページからの相対位置）
 const SHAPE_URL = 'assets/cat-shape.svg';
@@ -57,20 +60,38 @@ async function init() {
     body: document.getElementById('sheen-body'),
   });
   const tail = createTailFlick(document.getElementById('tail-tip'), document.getElementById('tail-flash'));
+
+  // ゴロゴロ：息の調子は呼吸のアニメーションと同じ周期にする。消音の状態は覚えておいたものを使う
+  const breathSeconds = parseCssSeconds(
+    getComputedStyle(document.documentElement).getPropertyValue('--breath-duration'),
+    4.5,
+  );
+  const muted = loadMuted();
+  const purr = createPurrSound({ breathSeconds, muted });
+  setupSoundToggle(document.getElementById('sound-toggle'), {
+    muted,
+    onChange: (value) => purr.setMuted(value),
+  });
+
   watchStrokes(svg, {
+    // 最初のひと撫で（押した操作）で、音の準備を始める
+    onPress: () => purr.prepare(),
     onStart: (stroke) => {
       dent.press(stroke);
       sheen.start(stroke);
       tail.start();
+      purr.start();
     },
     onMove: (stroke) => {
       dent.move(stroke);
       sheen.move(stroke);
+      purr.move(stroke);
     },
     onEnd: () => {
       dent.release();
       sheen.end();
       tail.stop();
+      purr.stop();
     },
   });
 }

@@ -21,8 +21,11 @@ function partAt(svg, clientX, clientY) {
   return strokePartOf(name);
 }
 
-// onStart / onMove / onEnd に { part, x, y, speed } を渡して知らせる（onEnd は引数なし）
-export function watchStrokes(svg, { onStart, onMove, onEnd }, config = STROKE) {
+// onStart / onMove / onEnd に { part, x, y, speed } を渡して知らせる（onEnd は引数なし）。
+// onPress は、猫の上で押したとき（撫でる前）と、離したときに呼ぶ。
+// 押す・離す操作の中なので、音の準備に使える（iPhone の Safari は、離す操作でないと音の準備を
+// 許さないことがあるため、離したときにも呼ぶ）
+export function watchStrokes(svg, { onPress = () => {}, onStart, onMove, onEnd }, config = STROKE) {
   let active = null; // 押している最中のポインタの記録
 
   function setPart(part) {
@@ -41,6 +44,7 @@ export function watchStrokes(svg, { onStart, onMove, onEnd }, config = STROKE) {
     if (!partAt(svg, event.clientX, event.clientY)) return;
     // マウスでドラッグしたときに、文字の選択や画像のドラッグが始まらないようにする
     event.preventDefault();
+    onPress();
     const point = toSvgPoint(svg, event.clientX, event.clientY);
     active = {
       id: event.pointerId,
@@ -83,7 +87,10 @@ export function watchStrokes(svg, { onStart, onMove, onEnd }, config = STROKE) {
 
   for (const type of ['pointerup', 'pointercancel']) {
     svg.addEventListener(type, (event) => {
-      if (active && event.pointerId === active.id) end();
+      if (active && event.pointerId === active.id) {
+        if (type === 'pointerup') onPress();
+        end();
+      }
     });
   }
 

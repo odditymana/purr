@@ -85,6 +85,58 @@ h1 {
   letter-spacing: 0.2em;
 }
 
+/* ===== 音を消すボタン：右上の隅に、小さく控えめに ===== */
+.sound-toggle {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.4rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  opacity: 0.9;
+}
+
+.sound-toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.sound-toggle svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sound-toggle .speaker {
+  fill: currentColor;
+}
+
+/* 音が出るときは音の波、消音のときは × を見せる */
+.sound-toggle .slash,
+.sound-toggle[aria-pressed="true"] .waves {
+  display: none;
+}
+
+.sound-toggle[aria-pressed="true"] .slash {
+  display: inline;
+}
+
 /* ===== 猫 ===== */
 #cat {
   display: block;
