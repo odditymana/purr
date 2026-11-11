@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  PURR, purrLevel, levelToGain, pulseRate, resumeStrokeTime, parseCssSeconds, brownNoise, toneWaveCoefficients,
+  PURR, purrLevel, levelToGain, pulseRate, pulsePlaybackRate, resumeStrokeTime, parseCssSeconds,
+  pinkNoise, grainShape, planGrains, grainEnvelopes, toneWaveCoefficients,
 } from '../js/logic/purr.js';
 
 // 決まった値を返す乱数（線形合同法）
@@ -59,31 +60,110 @@ test('CSS の時間を秒に直す', () => {
   assert.equal(parseCssSeconds('0s', 3), 3);
 });
 
+test('刻みの速さを再生速度に直す（速く撫でても +8% ほどまで）', () => {
+  assert.equal(pulsePlaybackRate(PURR.slowPulseHz), 1);
+  assert.ok(pulsePlaybackRate(PURR.fastPulseHz) <= 1.081);
+});
+
 test('ノイズは長さどおりで、いちばん大きい値が 1 にそろう', () => {
-  const data = brownNoise(4000, seeded(1));
+  const data = pinkNoise(4000, seeded(1));
   assert.equal(data.length, 4000);
   const peak = Math.max(...data.map(Math.abs));
   assert.ok(Math.abs(peak - 1) < 1e-6);
 });
 
 test('同じ乱数なら、同じノイズになる', () => {
-  assert.deepEqual(brownNoise(100, seeded(7)), brownNoise(100, seeded(7)));
+  assert.deepEqual(pinkNoise(100, seeded(7)), pinkNoise(100, seeded(7)));
 });
 
-test('ノイズは低い音が多い（隣どうしの値が近い）', () => {
-  const data = brownNoise(4000, seeded(3));
-  let diff = 0;
-  for (let i = 1; i < data.length; i++) diff += Math.abs(data[i] - data[i - 1]);
-  assert.ok(diff / data.length < 0.1);
+test('粒は、少し鋭く立ち上がり、速く減衰する', () => {
+  const a = PURR.grainAttackMs / 1000;
+  assert.equal(grainShape(-0.001), 0);
+  assert.equal(grainShape(a), 1);
+  assert.ok(grainShape(a / 2) > 0.4 && grainShape(a / 2) < 0.6);
+  // 立ち上がり（3ms）より、減衰して半分になるまでのほうが長い。それでも 30ms で 2 割を切る
+  assert.ok(grainShape(a + 0.005) > 0.5);
+  assert.ok(grainShape(a + 0.03) < 0.2);
 });
 
-test('胸に響く成分は、基音と 300 Hz までの倍音を持つ', () => {
+const BREATH = 4.5;
+
+test('粒の数は、およそ「刻み × 鳴っている時間」', () => {
+  const grains = planGrains(BREATH, seeded(2));
+  const gapTotal = (PURR.gapMs / 1000) * 2 * PURR.breathsPerLoop;
+  const expected = PURR.slowPulseHz * (BREATH * PURR.breathsPerLoop - gapTotal);
+  assert.ok(Math.abs(grains.length - expected) < expected * 0.05, `${grains.length} / ${expected}`);
+});
+
+test('粒の間隔と強さのばらつきは、決めた範囲に収まる', () => {
+  const grains = planGrains(BREATH, seeded(3));
+  const base = 1 / PURR.slowPulseHz;
+  for (let i = 1; i < grains.length; i++) {
+    const d = grains[i].time - grains[i - 1].time;
+    if (grains[i].phase !== grains[i - 1].phase) continue; // 切り替わりのすき間はとばす
+    assert.ok(d >= base * (1 - PURR.intervalJitter) - 1e-9 && d <= base * (1 + PURR.intervalJitter) + 1e-9);
+  }
+  const maxAmp = (1 + PURR.breathLevelJitter) * PURR.exhaleLevel * (1 + PURR.amplitudeJitter);
+  assert.ok(grains.every((g) => g.amplitude >= 0 && g.amplitude <= maxAmp + 1e-9));
+});
+
+test('ばらつきは毎回同じではない（間隔がそろいすぎていない）', () => {
+  const grains = planGrains(BREATH, seeded(4)).filter((g) => g.phase === 'exhale');
+  const gaps = new Set(grains.slice(1, 20).map((g, i) => (g.time - grains[i].time).toFixed(4)));
+  assert.ok(gaps.size > 10);
+});
+
+test('吸うときは吐くときより小さい', () => {
+  const grains = planGrains(BREATH, seeded(5));
+  const avg = (phase) => {
+    const list = grains.filter((g) => g.phase === phase);
+    return list.reduce((a, g) => a + g.amplitude, 0) / list.length;
+  };
+  assert.ok(avg('inhale') < avg('exhale') * 0.85);
+});
+
+test('吸う・吐くの切り替わりには、粒の鳴らないすき間がある', () => {
+  const grains = planGrains(BREATH, seeded(6));
+  const switchAt = BREATH * PURR.inhaleRatio;
+  const near = grains.filter((g) => Math.abs(g.time - switchAt) < PURR.gapMs / 2000);
+  assert.equal(near.length, 0);
+  const atLoopStart = grains.filter((g) => g.time < PURR.gapMs / 2000);
+  assert.equal(atLoopStart.length, 0);
+});
+
+test('包絡：吸う側と吐く側は重ならず、すき間の真ん中では 0', () => {
+  const rate = 8000;
+  const grains = planGrains(BREATH, seeded(8));
+  const { inhale, exhale } = grainEnvelopes(grains, BREATH * PURR.breathsPerLoop, rate);
+  assert.equal(inhale.length, Math.round(BREATH * PURR.breathsPerLoop * rate));
+  let overlap = 0;
+  for (let i = 0; i < inhale.length; i++) if (inhale[i] > 0.01 && exhale[i] > 0.01) overlap++;
+  assert.ok(overlap < inhale.length * 0.002, `重なり ${overlap}`);
+  const mid = Math.round((BREATH * PURR.inhaleRatio + PURR.gapMs / 2000 - 0.001) * rate);
+  assert.ok(exhale[mid] < 0.02 && inhale[mid] < 0.05);
+});
+
+test('同じ乱数なら、同じ粒の並びになる', () => {
+  assert.deepEqual(planGrains(BREATH, seeded(9)), planGrains(BREATH, seeded(9)));
+});
+
+test('並びは何呼吸ぶんもあり、呼吸ごとに同じ並びの繰り返しではない', () => {
+  const grains = planGrains(BREATH, seeded(10));
+  assert.ok(PURR.breathsPerLoop >= 3);
+  const firstOf = (b) => grains.filter((g) => g.time >= b * BREATH && g.time < (b + 1) * BREATH)
+    .slice(0, 10).map((g) => (g.time - b * BREATH).toFixed(4));
+  assert.notDeepEqual(firstOf(0), firstOf(1));
+});
+
+test('音程の芯は、基音と 300 Hz までの倍音を持ち、ごく小さく混ぜるだけ', () => {
+  assert.ok(PURR.toneMix < 0.2);
   const { real, imag } = toneWaveCoefficients();
   assert.equal(imag.length, PURR.harmonics.length + 1);
   assert.equal(imag[0], 0);
   assert.ok(real.every((v) => v === 0));
   assert.equal(PURR.baseHz * PURR.harmonics.length, 300);
-  // 小さなスピーカー向けに、100〜300 Hz の倍音の合計が基音より強い
-  const overtones = PURR.harmonics.slice(1).reduce((a, b) => a + b, 0);
-  assert.ok(overtones > PURR.harmonics[0] * 3);
+});
+
+test('主役のノイズの胸の帯域は、小さなスピーカーでも鳴る 100〜250 Hz にある', () => {
+  assert.ok(PURR.bodyBandHz >= 100 && PURR.bodyBandHz <= 250);
 });
