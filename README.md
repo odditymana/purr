@@ -21,6 +21,8 @@
 
 ---
 
+![和紙の上で丸くなって眠る黒猫](docs/screenshot.jpg)
+
 **→ [https://odditymana.github.io/purr/](https://odditymana.github.io/purr/)**
 
 [![テスト](https://github.com/odditymana/purr/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/odditymana/purr/actions/workflows/test.yml)
