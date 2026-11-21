@@ -15,6 +15,7 @@ import { createTailFlick } from './cat/tail-flick.js';
 import { createPurrSound } from './sound/purr-sound.js';
 import { setupSoundToggle, loadMuted } from './ui/sound-toggle.js';
 import { setupDebugPanel } from './ui/debug-panel.js';
+import { preventPagePan } from './ui/page-pan.js';
 import { parseCssSeconds } from './logic/purr.js';
 
 // 形のファイル（ページからの相対位置）
@@ -116,6 +117,9 @@ async function init() {
   // キーボード：猫にフォーカスして、矢印キーで撫でる
   watchKeyboardStrokes(svg, document.getElementById('keyboard-marker'), reactions);
 }
+
+// ページ全体を指で引っぱる動きを止める。猫の形の読み込みに失敗しても効くよう、init の外で先に呼ぶ
+preventPagePan();
 
 // type="module" のスクリプトは遅延実行されるため、DOM の準備を待たずに呼べる
 init();
