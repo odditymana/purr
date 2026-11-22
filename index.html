@@ -72,6 +72,19 @@
             <stop offset="0" style="stop-color: var(--tail-rim); stop-opacity: 0" />
             <stop offset="1" style="stop-color: var(--tail-rim)" />
           </linearGradient>
+          <!-- しっぽの上の縁のツヤを、前足の下に入るところで手前からゆるく消す mask。
+               前足も黒く輪郭が見えないので、ツヤが前足の縁でそのまま隠れると、途中でぷつっと切れて見えるため。
+               前足の右の縁（x 512）へ x 548 から、左の縁（x 396）へ x 380 から薄くし、前足の下では出さない。
+               座標は猫の viewBox（x 370〜560 を 0〜1 にした割合で stop を置く） -->
+          <linearGradient id="tail-rim-paw" gradientUnits="userSpaceOnUse" x1="370" y1="0" x2="560" y2="0">
+            <stop offset="0.053" stop-color="#fff" />
+            <stop offset="0.137" stop-color="#fff" stop-opacity="0" />
+            <stop offset="0.747" stop-color="#fff" stop-opacity="0" />
+            <stop offset="0.937" stop-color="#fff" />
+          </linearGradient>
+          <mask id="tail-rim-paw-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <rect x="-40" y="-40" width="880" height="440" fill="url(#tail-rim-paw)" />
+          </mask>
 
           <!-- ツヤと影：楕円にかけて使う。強さは楕円側の opacity で決める -->
           <radialGradient id="sheen">
@@ -197,7 +210,7 @@
                    先の部分は mask で隠し、下の #tail-tip で描く -->
               <g mask="url(#tail-base-mask)">
                 <g id="tail-art" data-part="tail">
-                  <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" />
+                  <use href="#shape-tail" class="tail-rim" transform="translate(-1.5 -1.5)" mask="url(#tail-rim-paw-mask)" />
                   <use href="#shape-tail" class="fur" />
                 </g>
               </g>
