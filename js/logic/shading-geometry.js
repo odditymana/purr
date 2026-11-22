@@ -5,13 +5,13 @@
 // 光は上から
 export const SHADING = {
   tail: [
-    // 筒の丸み：腰に沿って下りる部分と、床に沿って前へ回る部分の上の面
-    { type: 'sheen', cx: 0.86, cy: 0.42, rx: 0.05, ry: 0.3, rotate: 20, opacity: 0.14 },
-    { type: 'sheen', cx: 0.45, cy: 0.86, rx: 0.4, ry: 0.035, rotate: 0, opacity: 0.16 },
+    // 筒の丸み：腰に沿って下りる部分の外寄りと、床に沿って前へ回る部分の上の面
+    { type: 'sheen', cx: 0.974, cy: 0.475, rx: 0.017, ry: 0.243, rotate: -4, opacity: 0.14 },
+    { type: 'sheen', cx: 0.414, cy: 0.924, rx: 0.352, ry: 0.019, rotate: 0, opacity: 0.16 },
     // 先の丸み
-    { type: 'sheen', cx: 0.04, cy: 0.88, rx: 0.04, ry: 0.06, rotate: 0, opacity: 0.14 },
+    { type: 'sheen', cx: 0.028, cy: 0.955, rx: 0.023, ry: 0.03, rotate: 0, opacity: 0.14 },
     // 床側の縁は暗く
-    { type: 'shade', cx: 0.45, cy: 1.0, rx: 0.45, ry: 0.06, rotate: 0, opacity: 0.4 },
+    { type: 'shade', cx: 0.447, cy: 1.0, rx: 0.447, ry: 0.038, rotate: 0, opacity: 0.4 },
   ],
   hindLeg: [
     // のぞく足先の上の丸み

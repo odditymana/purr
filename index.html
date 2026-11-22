@@ -65,6 +65,14 @@
             <stop offset="1" style="stop-color: var(--belly-bottom)" />
           </linearGradient>
 
+          <!-- しっぽの上の縁のツヤ：腰に沿って下りる部分では出さず、床に沿って前へ回る部分でだけ出す。
+               腰に沿う部分の内側の縁は腰の輪郭に重なっていて、そこに縁が出ると輪郭に沿った線が浮くため。
+               座標は猫の viewBox（腰に沿う部分は y 157〜310 あたり、床に沿う部分の上の縁は y 320〜328） -->
+          <linearGradient id="tail-rim-fade" gradientUnits="userSpaceOnUse" x1="0" y1="312" x2="0" y2="322">
+            <stop offset="0" style="stop-color: var(--tail-rim); stop-opacity: 0" />
+            <stop offset="1" style="stop-color: var(--tail-rim)" />
+          </linearGradient>
+
           <!-- ツヤと影：楕円にかけて使う。強さは楕円側の opacity で決める -->
           <radialGradient id="sheen">
             <stop offset="0" style="stop-color: var(--fur-sheen)" />
@@ -145,13 +153,13 @@
             <use href="#shape-earNear" fill="#fff" />
           </mask>
 
-          <!-- しっぽを根元と先に分ける mask。切れ目は x 560（先を回す支点のところ）。
+          <!-- しっぽを根元と先に分ける mask。切れ目は x 490（先を回す支点のところ。先 x 370 から約 120）。
                2つの切り口は少し重ねて、先が持ち上がっても継ぎ目にすき間が出ないようにする -->
           <mask id="tail-base-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
-            <rect x="558" y="-40" width="282" height="440" fill="#fff" />
+            <rect x="488" y="-40" width="352" height="440" fill="#fff" />
           </mask>
           <mask id="tail-tip-mask" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
-            <rect x="-40" y="-40" width="602" height="440" fill="#fff" />
+            <rect x="-40" y="-40" width="532" height="440" fill="#fff" />
           </mask>
 
           <!-- 撫でた場所が沈む：撫でている点のまわりの絵を、少しだけ下へずらす。

@@ -188,9 +188,9 @@ h1 {
   fill: url(#belly-base);
 }
 
-/* しっぽの上の縁のツヤ（目の縁と同じ作り） */
+/* しっぽの上の縁のツヤ（目の縁と同じ作り）。付け根では消え、下へ向かって出る（index.html の #tail-rim-fade） */
 .tail-rim {
-  fill: var(--tail-rim);
+  fill: url(#tail-rim-fade);
   stroke: none;
   opacity: 0.45;
 }
@@ -383,7 +383,7 @@ h1 {
    動き（間隔・角度・速さ）は js/logic/tail-flick.js の TAIL_FLICK で決める */
 .tail-flick {
   transform-box: view-box;
-  transform-origin: 560px 335px;
+  transform-origin: 490px 333px;
 }
 
 /* ===== 動きを減らす設定 ===== */
