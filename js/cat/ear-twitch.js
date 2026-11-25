@@ -2,6 +2,7 @@
 // 値は js/logic/ear-twitch.js、待ち時間・回数・キーフレームの計算は js/logic/twitch.js にある。
 // - prefers-reduced-motion のときは動かさない（設定が途中で変わっても追従する）
 // - タブが見えていないあいだは予約を止める
+// - onTwitch は、耳が1回動き始めるたびに呼ぶ（ひげをつられて動かすのに使う）
 
 import { EAR_TWITCH } from '../logic/ear-twitch.js';
 import { planTwitch, twitchKeyframes } from '../logic/twitch.js';
@@ -9,7 +10,7 @@ import { planTwitch, twitchKeyframes } from '../logic/twitch.js';
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export function startEarTwitch(ear, { random = Math.random, config = EAR_TWITCH } = {}) {
+export function startEarTwitch(ear, { random = Math.random, config = EAR_TWITCH, onTwitch = () => {} } = {}) {
   const { keyframes, durationMs } = twitchKeyframes(config);
   let timer = null; // 次の動きの予約
   let running = null; // 動いている最中のアニメーション
@@ -26,6 +27,7 @@ export function startEarTwitch(ear, { random = Math.random, config = EAR_TWITCH 
       if (i > 0) await wait(config.doubleGapMs);
       if (myGeneration !== generation || !canMove()) return;
       running = ear.animate(keyframes, { duration: durationMs });
+      onTwitch();
       await wait(durationMs);
       running = null;
     }

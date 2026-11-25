@@ -6,6 +6,7 @@ import { loadShapes } from './cat/shape-loader.js';
 import { applyShading } from './cat/shading.js';
 import { fitWhiskerFade } from './cat/whiskers.js';
 import { startEarTwitch } from './cat/ear-twitch.js';
+import { createWhiskerSway } from './cat/whisker-sway.js';
 import { createFurBitmaps } from './cat/fur-bitmap.js';
 import { watchStrokes } from './cat/stroke-input.js';
 import { watchKeyboardStrokes } from './cat/keyboard-stroke.js';
@@ -49,7 +50,15 @@ async function init() {
     );
   }
 
-  if (!missing.includes('earFar')) startEarTwitch(document.getElementById('ear-twitch'));
+  // ひげ：耳がぴくっと動くときにつられてかすかに寄り、頭を撫でているときは空気が動いた程度に揺れる
+  const whiskers = missing.includes('whiskers') ? null : createWhiskerSway({
+    upper: document.getElementById('whiskers-upper'),
+    lower: document.getElementById('whiskers-lower'),
+  });
+
+  if (!missing.includes('earFar')) {
+    startEarTwitch(document.getElementById('ear-twitch'), { onTwitch: () => whiskers?.follow() });
+  }
 
   // 毛の質感を一度だけ画像にして、動かすときに毛のフィルターを計算し直さないようにする。
   // 画像ができるまでは、今までどおりフィルターで描いている
@@ -91,6 +100,11 @@ async function init() {
   // URL に ?debug=1 を付けたときだけ、音の状態を画面の隅に出す（実機での確認用）
   setupDebugPanel({ audioState: () => purr.state(), furState: () => fur.state() });
 
+  // 頭を撫でているあいだは、撫でている位置に近いほうのひげの束が揺れる（揺れている最中は重ねない）
+  const swayWhiskers = (stroke) => {
+    if (stroke.part === 'head') whiskers?.sway(stroke);
+  };
+
   // 撫でたときの反応は、マウス・タッチとキーボードで共通
   const reactions = {
     // 最初のひと撫で（押した操作）で、音の準備を始める
@@ -100,11 +114,13 @@ async function init() {
       sheen.start(stroke);
       tail.start();
       purr.start();
+      swayWhiskers(stroke);
     },
     onMove: (stroke) => {
       dent.move(stroke);
       sheen.move(stroke);
       purr.move(stroke);
+      swayWhiskers(stroke);
     },
     onEnd: () => {
       dent.release();

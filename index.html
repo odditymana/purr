@@ -149,6 +149,14 @@
             <feDropShadow dx="0" dy="0.8" stdDeviation="0.7"
                           style="flood-color: var(--whisker-shadow)" flood-opacity="0.45" />
           </filter>
+          <!-- ひげを上の束と下の束に分ける mask。境目は鼻の高さ（y 258）で、どちらの束の根元からも 30 ほど離れているので、
+               束を数度回しても切れ目は見えない。値は js/logic/whisker-sway.js の WHISKER_SWAY.splitY と合わせる -->
+          <mask id="whisker-mask-upper" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <rect x="-40" y="-40" width="880" height="298" fill="#fff" />
+          </mask>
+          <mask id="whisker-mask-lower" maskUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
+            <rect x="-40" y="258" width="880" height="142" fill="#fff" />
+          </mask>
           <!-- 撫でた跡のツヤの筋：細い毛筋を軽くぼかして、柔らかい光にする -->
           <filter id="sheen-soften" filterUnits="userSpaceOnUse" x="-40" y="-40" width="880" height="440">
             <feGaussianBlur stdDeviation="1.2" />
@@ -256,9 +264,20 @@
               <use href="#shape-mouth" class="mouth" />
             </g>
 
-            <!-- ひげ -->
+            <!-- ひげ：上の束と下の束に分け、それぞれ根元を支点にかすかに動かす（js/cat/whisker-sway.js）。
+                 外側のグループは耳につられる動き、内側のグループは撫でたときの揺れ（2つの動きが重なっても打ち消し合わないように分ける）。
+                 同じひげの形を2回描き、mask で上半分・下半分だけを見せる -->
             <g filter="url(#whisker-shadow)">
-              <use id="whiskers-use" href="#shape-whiskers" class="whiskers" />
+              <g id="whiskers-upper">
+                <g>
+                  <use id="whiskers-use" href="#shape-whiskers" class="whiskers" mask="url(#whisker-mask-upper)" />
+                </g>
+              </g>
+              <g id="whiskers-lower">
+                <g>
+                  <use href="#shape-whiskers" class="whiskers" mask="url(#whisker-mask-lower)" />
+                </g>
+              </g>
             </g>
           </g>
         </g>
